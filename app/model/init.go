@@ -4,12 +4,8 @@ import (
 	"github.com/globalsign/mgo"
 
 	"github.com/covrom/dingo/app/utils"
-	_ "github.com/globalsign/mgo"
-	_ "github.com/globalsign/mgo/bson"
-	_ "github.com/mattn/go-sqlite3"
 )
 
-// var db *sql.DB
 var mdb *mgo.Session
 
 const samplePostContent = `

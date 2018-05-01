@@ -21,13 +21,13 @@ import (
 //         custom         custom settings
 type Setting struct {
 	// Id        int        `meddler:"id,pk"`
-	Key       string     `meddler:"key"`
-	Value     string     `meddler:"value"`
-	Type      string     `meddler:"type"` // general, content, navigation, custom
-	CreatedAt *time.Time `meddler:"created_at"`
-	CreatedBy int64      `meddler:"created_by"`
-	UpdatedAt *time.Time `meddler:"updated_at"`
-	UpdatedBy int64      `meddler:"updated_by"`
+	Key       string     //`meddler:"key"`
+	Value     string     //`meddler:"value"`
+	Type      string     //`meddler:"type"` // general, content, navigation, custom
+	CreatedAt *time.Time //`meddler:"created_at"`
+	CreatedBy int64      //`meddler:"created_by"`
+	UpdatedAt *time.Time //`meddler:"updated_at"`
+	UpdatedBy int64      //`meddler:"updated_by"`
 }
 
 // A Navigator represents a link in the site navigation menu.

@@ -17,4 +17,23 @@ var shema_indexes = []shema_struct{
 		Background: true,
 		Sparse:     true,
 	}},
+	shema_struct{"comments", mgo.Index{
+		Key:        []string{"Id"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}},
+	shema_struct{"comments", mgo.Index{
+		Key: []string{"-CreatedAt"},
+	}},
+	shema_struct{"comments", mgo.Index{
+		Key: []string{"Approved"},
+	}},
+	shema_struct{"comments", mgo.Index{
+		Key: []string{"Parent"},
+	}},
+	shema_struct{"comments", mgo.Index{
+		Key: []string{"PostId"},
+	}},
 }

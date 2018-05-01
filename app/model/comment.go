@@ -1,12 +1,15 @@
 package model
 
 import (
-	"database/sql"
+	// "database/sql"
+
 	"time"
 
 	"fmt"
+
 	"github.com/covrom/dingo/app/utils"
-	"github.com/russross/meddler"
+	"github.com/globalsign/mgo/bson"
+	// "github.com/russross/meddler"
 )
 
 // Comments are a slice of "Comment"s
@@ -14,21 +17,21 @@ type Comments []*Comment
 
 // A Comment defines comment item data.
 type Comment struct {
-	Id        int64      `meddler:"id,pk"`
-	PostId    int64      `meddler:"post_id"`
-	Author    string     `meddler:"author"`
-	Email     string     `meddler:"author_email"`
-	Avatar    string     `meddler:"author_avatar"`
-	Website   string     `meddler:"author_url"`
-	Ip        string     `meddler:"author_ip"`
-	CreatedAt *time.Time `meddler:"created_at"`
-	Content   string     `meddler:"content"`
-	Approved  bool       `meddler:"approved"`
-	UserAgent string     `meddler:"agent"`
-	Type      string     `meddler:"type"`
-	Parent    int64      `meddler:"parent"`
-	UserId    int64      `meddler:"user_id"`
-	Children  *Comments  `meddler:"-"`
+	Id        int64      //`meddler:"id,pk"`
+	PostId    int64      //`meddler:"post_id"`
+	Author    string     //`meddler:"author"`
+	Email     string     //`meddler:"author_email"`
+	Avatar    string     //`meddler:"author_avatar"`
+	Website   string     //`meddler:"author_url"`
+	Ip        string     //`meddler:"author_ip"`
+	CreatedAt *time.Time //`meddler:"created_at"`
+	Content   string     //`meddler:"content"`
+	Approved  bool       //`meddler:"approved"`
+	UserAgent string     //`meddler:"agent"`
+	Type      string     //`meddler:"type"`
+	Parent    int64      //`meddler:"parent"`
+	UserId    int64      //`meddler:"user_id"`
+	Children  *Comments  //`meddler:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
@@ -57,7 +60,13 @@ func NewComment() *Comment {
 // Save saves the comment in the DB.
 func (c *Comment) Save() error {
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	err := meddler.Save(db, "comments", c)
+
+	session := mdb.Copy()
+	defer session.Close()
+	_, err := session.DB(DBName).C("comments").Upsert(bson.M{"Id": c.Id}, c)
+	return err
+
+	// err := meddler.Save(db, "comments", c)
 	return err
 }
 
@@ -98,14 +107,15 @@ func (c *Comment) ParentContent() string {
 
 // GetNumberOfComments returns the total number of comments in the DB.
 func GetNumberOfComments() (int64, error) {
-	var count int64
-	var row *sql.Row
-	row = db.QueryRow(stmtGetAllCommentCount)
-	err := row.Scan(&count)
+
+	session := mdb.Copy()
+	defer session.Close()
+	count, err := session.DB(DBName).C("comments").Count()
+
 	if err != nil {
 		return 0, err
 	}
-	return count, nil
+	return int64(count), nil
 }
 
 // GetCommentList returns a new pager based on the total number of comments.
@@ -119,25 +129,39 @@ func (c *Comments) GetCommentList(page, size int64, onlyApproved bool) (*utils.P
 		return pager, fmt.Errorf("Page not found")
 	}
 
-	var where string
+	session := mdb.Copy()
+	defer session.Close()
+
 	if onlyApproved {
-		where = `WHERE approved = 1`
+		err = session.DB(DBName).C("comments").Find(bson.M{"Approved": true}).Sort("-CreatedAt").Skip(int(pager.Begin)).Limit(int(size)).All(c)
+	} else {
+		err = session.DB(DBName).C("comments").Find(bson.M{}).Sort("-CreatedAt").Skip(int(pager.Begin)).Limit(int(size)).All(c)
 	}
 
-	err = meddler.QueryAll(db, c, fmt.Sprintf(stmtGetCommentList, where), size, pager.Begin)
+	// err = meddler.QueryAll(db, c, fmt.Sprintf(stmtGetCommentList, where), size, pager.Begin)
 	return pager, err
 }
 
 // GetCommentById gets a comment by its ID, and populates that comment struct
 // with the contents for that comment from the DB.
 func (c *Comment) GetCommentById() error {
-	err := meddler.QueryRow(db, c, stmtGetCommentById, c.Id)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("comments").Find(bson.M{"Id": c.Id}).One(c)
+
+	// err := meddler.QueryRow(db, c, stmtGetCommentById, c.Id)
 	return err
 }
 
 func (c *Comment) getChildComments() (*Comments, error) {
+	session := mdb.Copy()
+	defer session.Close()
+
 	comments := new(Comments)
-	err := meddler.QueryAll(db, comments, stmtGetCommentsByParentId, c.Id)
+	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": c.Id, "Approved": true}).All(comments)
+
+	// err := meddler.QueryAll(db, comments, stmtGetCommentsByParentId, c.Id)
 	return comments, err
 }
 
@@ -158,7 +182,12 @@ func (c *Comment) Post() *Post {
 
 // GetCommentsByPostId gets all the comments for the given post ID.
 func (comments *Comments) GetCommentsByPostId(id int64) error {
-	err := meddler.QueryAll(db, comments, stmtGetParentCommentsByPostId, id)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("comments").Find(bson.M{"PostId": id, "Parent": int64(0), "Approved": true}).All(comments)
+
+	// err := meddler.QueryAll(db, comments, stmtGetParentCommentsByPostId, id)
 	for _, c := range *comments {
 		buildCommentTree(c, c, 1)
 	}
@@ -185,17 +214,30 @@ func buildCommentTree(p *Comment, c *Comment, level int) {
 
 // DeleteComment deletes the comment with the given ID from the DB.
 func DeleteComment(id int64) error {
-	writeDB, err := db.Begin()
+	session := mdb.Copy()
+	defer session.Close()
+
+	chields := new(Comments)
+	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": id}).All(chields)
+	if err == nil {
+		for _, chield := range *chields {
+			DeleteComment(chield.Id)
+		}
+	}
+
+	err = session.DB(DBName).C("comments").Remove(bson.M{"Id": id})
+
+	// writeDB, err := db.Begin()
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	// _, err = writeDB.Exec(stmtDeleteCommentById, id)
 	if err != nil {
-		writeDB.Rollback()
+		// writeDB.Rollback()
 		return err
 	}
-	_, err = writeDB.Exec(stmtDeleteCommentById, id)
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	return writeDB.Commit()
+	return nil //writeDB.Commit()
 }
 
 // ValidateComment validates a comment to ensure that all required data exists
@@ -213,10 +255,10 @@ func (c *Comment) ValidateComment() string {
 	return ""
 }
 
-const stmtGetAllCommentCount = `SELECT count(*) FROM comments`
-const stmtDeleteCommentById = `DELETE FROM comments WHERE id = ?`
-const stmtGetCommentList = `SELECT * FROM comments %s ORDER BY created_at DESC LIMIT ? OFFSET ?`
-const stmtGetCommentById = `SELECT * FROM comments WHERE id = ?`
-const stmtGetCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
-const stmtGetParentCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
-const stmtGetCommentsByParentId = `SELECT * FROM comments WHERE parent = ? AND approved = 1`
+// const stmtGetAllCommentCount = `SELECT count(*) FROM comments`
+// const stmtDeleteCommentById = `DELETE FROM comments WHERE id = ?`
+// const stmtGetCommentList = `SELECT * FROM comments %s ORDER BY created_at DESC LIMIT ? OFFSET ?`
+// const stmtGetCommentById = `SELECT * FROM comments WHERE id = ?`
+// const stmtGetCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
+// const stmtGetParentCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
+// const stmtGetCommentsByParentId = `SELECT * FROM comments WHERE parent = ? AND approved = 1`
