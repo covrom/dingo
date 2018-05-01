@@ -3,6 +3,8 @@ package model
 import (
 	"database/sql"
 
+	"github.com/globalsign/mgo"
+
 	"github.com/covrom/dingo/app/utils"
 	_ "github.com/globalsign/mgo"
 	_ "github.com/globalsign/mgo/bson"
@@ -10,6 +12,7 @@ import (
 )
 
 var db *sql.DB
+var mdb *mgo.Session
 
 const samplePostContent = `
 Welcome to Dingo! This is your first post. You can find it in the [admin panel](/admin/).
@@ -84,14 +87,28 @@ type Row interface {
 
 // Initialize sets up the DB by creaing a new connection, creating tables if
 // they don't exist yet, and creates the welcome data.
-func Initialize(dbPath string, dbExists bool) error {
+func Initialize(dbPath string) error {
 	if err := initConnection(dbPath); err != nil {
 		return err
 	}
 
-	if err := createTableIfNotExist(); err != nil {
+	dbnames, err := mdb.DatabaseNames()
+	if err != nil {
 		return err
 	}
+
+	dbExists := false
+	for _, n := range dbnames {
+		if n == "blog" {
+			dbExists = true
+		}
+	}
+
+	if err := ensureIndexes(); err != nil {
+		return err
+	}
+
+	checkBlogSettings()
 
 	if !dbExists {
 		if err := createWelcomeData(); err != nil {
@@ -104,26 +121,24 @@ func Initialize(dbPath string, dbExists bool) error {
 
 func initConnection(dbPath string) error {
 	var err error
-	db, err = sql.Open("sqlite3", dbPath)
+	mdb, err = mgo.Dial(dbPath)
 	if err != nil {
 		return err
 	}
+	mdb.SetMode(mgo.Monotonic, true)
 	return nil
 }
 
-func createTableIfNotExist() error {
-	if _, err := db.Exec(schema); err != nil {
-		return err
-	}
-
-	checkBlogSettings()
+func ensureIndexes() error {
+	// если понадобятся индексы, их нужно инициализировать здесь, см. schema.go
+	
 	return nil
 }
 
 func checkBlogSettings() {
 	SetSettingIfNotExists("theme", "default", "blog")
 	SetSettingIfNotExists("title", "My Blog", "blog")
-	SetSettingIfNotExists("description", "Awesome blog created by Dingo.", "blog")
+	SetSettingIfNotExists("description", "Awesome blog created by covrom/dingo.", "blog")
 }
 
 func createWelcomeData() error {

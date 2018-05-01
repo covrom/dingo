@@ -1,5 +1,17 @@
 package model
 
+// import "github.com/globalsign/mgo"
+
+// var shema_indexes = map[string]mgo.Index{
+// 	"posts": mgo.Index{
+// 		Key:        []string{"isbn"},
+// 		Unique:     true,
+// 		DropDups:   true,
+// 		Background: true,
+// 		Sparse:     true,
+// 	},
+// }
+
 const schema = `
 CREATE TABLE IF NOT EXISTS
 posts (

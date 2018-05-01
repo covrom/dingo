@@ -5,12 +5,13 @@ import (
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo/bson"
 	"github.com/russross/meddler"
 )
 
-const stmtGetSetting = `SELECT * FROM settings WHERE key = ?`
-const stmtSaveSelect = `SELECT id FROM settings WHERE KEY = ?`
-const stmtGetSettingsByType = `SELECT * FROM settings WHERE type = ?`
+// const stmtGetSetting = `SELECT * FROM settings WHERE key = ?`
+// const stmtSaveSelect = `SELECT id FROM settings WHERE KEY = ?`
+// const stmtGetSettingsByType = `SELECT * FROM settings WHERE type = ?`
 
 // A Setting is the data type that stores the blog's configuration options. It
 // is essentially a key-value store for settings, along with a type to help
@@ -20,7 +21,7 @@ const stmtGetSettingsByType = `SELECT * FROM settings WHERE type = ?`
 //         navigation     site navigation settings
 //         custom         custom settings
 type Setting struct {
-	Id        int        `meddler:"id,pk"`
+	// Id        int        `meddler:"id,pk"`
 	Key       string     `meddler:"key"`
 	Value     string     `meddler:"value"`
 	Type      string     `meddler:"type"` // general, content, navigation, custom
@@ -64,7 +65,11 @@ func SetNavigators(labels, urls []string) error {
 
 // GetSetting checks if a setting exists in the DB.
 func (setting *Setting) GetSetting() error {
-	err := meddler.QueryRow(db, setting, stmtGetSetting, setting.Key)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB("blog").C("settings").Find(bson.M{"Key": setting.Key}).One(setting)
+
 	return err
 }
 
@@ -88,8 +93,12 @@ type Settings []*Setting
 // GetSettingsByType returns all settings of the given type, where the setting
 // key can be one of "general", "content", "navigation", or "custom".
 func GetSettingsByType(t string) *Settings {
+	session := mdb.Copy()
+	defer session.Close()
+
 	settings := new(Settings)
-	err := meddler.QueryAll(db, settings, stmtGetSettingsByType, t)
+	err := session.DB("blog").C("settings").Find(bson.M{"Type": t}).All(settings)
+
 	if err != nil {
 		return nil
 	}
