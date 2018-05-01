@@ -13,8 +13,8 @@ import (
 func TestSetting(t *testing.T) {
 
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		Initialize(testDB, true)
+		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
+		Initialize("localhost")
 
 		Convey("Test Navigators", func() {
 			SetNavigators([]string{"Home", "About", "Team", ""}, []string{"/", "/about/", "/team/", "/other/"})
@@ -79,7 +79,7 @@ func TestSetting(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			DropDatabase()
 		})
 	})
 }

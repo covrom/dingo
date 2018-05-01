@@ -180,3 +180,7 @@ func createWelcomeData() error {
 	SetNavigators([]string{"Home"}, []string{"/"})
 	return nil
 }
+
+func DropDatabase() {
+	mdb.DB(DBName).DropDatabase()
+}

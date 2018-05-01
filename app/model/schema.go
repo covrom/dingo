@@ -2,7 +2,7 @@ package model
 
 import "github.com/globalsign/mgo"
 
-const DBName = "dingoblog"
+var DBName = "dingoblog"
 
 type shema_struct struct {
 	name string
