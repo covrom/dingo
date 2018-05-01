@@ -43,8 +43,8 @@ func commentEqualCheck(c *Comment, expected *Comment) {
 
 func TestComment(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		Initialize(testDB, true)
+		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
+		Initialize("localhost")
 
 		Convey("Test Message", func() {
 			pc := mockComment()
@@ -110,7 +110,7 @@ func TestComment(t *testing.T) {
 			})
 		})
 		Reset(func() {
-			os.Remove(testDB)
+			DropDatabase()
 		})
 	})
 }
