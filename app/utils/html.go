@@ -61,7 +61,7 @@ func Html2Excerpt(html string, length int) string {
 // Markdown2Html returns the given text as Markdown, using BlackFriday as a
 // markdown compiler.
 func Markdown2Html(text string) string {
-	return string(blackfriday.MarkdownCommon([]byte(text)))
+	return string(blackfriday.Run([]byte(text)))
 }
 
 // Markdown2HtmlTemplate returns the given text as Markdown, as the template

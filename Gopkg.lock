@@ -20,10 +20,16 @@
   version = "v1.6.0"
 
 [[projects]]
-  name = "github.com/go-stack/stack"
-  packages = ["."]
-  revision = "259ab82a6cad3992b4e21ff5cac294ccb06474bc"
-  version = "v1.7.0"
+  branch = "master"
+  name = "github.com/globalsign/mgo"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram"
+  ]
+  revision = "efe0945164a7e582241f37ae8983c075f8f2e870"
 
 [[projects]]
   branch = "master"
@@ -54,37 +60,6 @@
   packages = ["."]
   revision = "6c771bb9887719704b210e87e934f08be014bdb1"
   version = "v1.6.0"
-
-[[projects]]
-  name = "github.com/mongodb/mongo-go-driver"
-  packages = [
-    "bson",
-    "bson/builder",
-    "bson/decimal",
-    "bson/elements",
-    "bson/objectid",
-    "core/addr",
-    "core/auth",
-    "core/auth/internal/gssapi",
-    "core/command",
-    "core/connection",
-    "core/connstring",
-    "core/description",
-    "core/dispatch",
-    "core/options",
-    "core/readconcern",
-    "core/readpref",
-    "core/result",
-    "core/tag",
-    "core/topology",
-    "core/version",
-    "core/wiremessage",
-    "core/writeconcern",
-    "internal",
-    "mongo"
-  ]
-  revision = "94ae2dc59114fbf6dd39707929068adfa20a92e8"
-  version = "v0.0.3"
 
 [[projects]]
   name = "github.com/russross/blackfriday"
@@ -129,22 +104,9 @@
   name = "golang.org/x/crypto"
   packages = [
     "bcrypt",
-    "blowfish",
-    "pbkdf2"
+    "blowfish"
   ]
   revision = "ae8bce0030810cf999bb2b9868ae5c7c58e6343b"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/net"
-  packages = ["context"]
-  revision = "5f9ae10d9af5b1c89ae6904293b14b064d4ada23"
-
-[[projects]]
-  branch = "master"
-  name = "golang.org/x/sync"
-  packages = ["semaphore"]
-  revision = "1d60e4601c6fd243af51cc01ddf169918a5407ca"
 
 [[projects]]
   branch = "master"
@@ -155,6 +117,6 @@
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
-  inputs-digest = "c0ee170c0739f444106469a249e00999d82469ea53abe410d19e3e095683ed7d"
+  inputs-digest = "72a0c16a8af80513ccd1766588ea4a71edc12b30d76d2a27712d842745e34eab"
   solver-name = "gps-cdcl"
   solver-version = 1
