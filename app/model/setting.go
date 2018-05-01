@@ -6,7 +6,6 @@ import (
 
 	"github.com/covrom/dingo/app/utils"
 	"github.com/globalsign/mgo/bson"
-	"github.com/russross/meddler"
 )
 
 // const stmtGetSetting = `SELECT * FROM settings WHERE key = ?`
@@ -68,7 +67,7 @@ func (setting *Setting) GetSetting() error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	err := session.DB("blog").C("settings").Find(bson.M{"Key": setting.Key}).One(setting)
+	err := session.DB(DBName).C("settings").Find(bson.M{"Key": setting.Key}).One(setting)
 
 	return err
 }
@@ -97,7 +96,7 @@ func GetSettingsByType(t string) *Settings {
 	defer session.Close()
 
 	settings := new(Settings)
-	err := session.DB("blog").C("settings").Find(bson.M{"Type": t}).All(settings)
+	err := session.DB(DBName).C("settings").Find(bson.M{"Type": t}).All(settings)
 
 	if err != nil {
 		return nil
@@ -107,14 +106,9 @@ func GetSettingsByType(t string) *Settings {
 
 // Save saves the setting to the DB.
 func (setting *Setting) Save() error {
-	var id int
-	row := db.QueryRow(stmtSaveSelect, setting.Key)
-	if err := row.Scan(&id); err != nil {
-		setting.Id = 0
-	} else {
-		setting.Id = id
-	}
-	err := meddler.Save(db, "settings", setting)
+	session := mdb.Copy()
+	defer session.Close()
+	_, err := session.DB(DBName).C("settings").Upsert(bson.M{"Key": setting.Key}, setting)
 	return err
 }
 
@@ -134,6 +128,7 @@ func SetSettingIfNotExists(k, v, t string) error {
 	s := NewSetting(k, v, t)
 	err := s.GetSetting()
 	if err != nil {
+		s := NewSetting(k, v, t)
 		return s.Save()
 	}
 	return err

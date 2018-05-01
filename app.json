@@ -2,6 +2,6 @@
   "name": "Dingo",
   "description": "Blog engine written in Go",
   "repository": "https://github.com/covrom/dingo",
-  "keywords": ["blog"],
+  "keywords": [DBName],
   "success_url": "/signup"
 }
