@@ -3,9 +3,9 @@ package handler
 import (
 	"strconv"
 
+	"github.com/covrom/dingo/app/model"
+	"github.com/covrom/dingo/app/utils"
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
-	"github.com/dingoblog/dingo/app/utils"
 )
 
 func AdminHandler(ctx *golf.Context) {

@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
-	"github.com/dingoblog/dingo/app/utils"
+	"github.com/covrom/dingo/app/model"
+	"github.com/covrom/dingo/app/utils"
 )
 
 func Initialize(app *golf.Application) *golf.Application {

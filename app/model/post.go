@@ -10,7 +10,7 @@ import (
 
 	"net/http"
 
-	"github.com/dingoblog/dingo/app/utils"
+	"github.com/covrom/dingo/app/utils"
 	"github.com/russross/meddler"
 )
 

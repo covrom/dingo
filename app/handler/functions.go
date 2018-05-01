@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"github.com/dingoblog/dingo/app/model"
+	"github.com/covrom/dingo/app/model"
 )
 
 func getAllTags() []*model.Tag {

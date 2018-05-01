@@ -11,8 +11,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/covrom/dingo/app/model"
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
 	. "github.com/smartystreets/goconvey/convey"
 )
 

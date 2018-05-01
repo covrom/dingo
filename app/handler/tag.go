@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
+	"github.com/covrom/dingo/app/model"
 )
 
 func registerTagHandlers(app *golf.Application, routes map[string]map[string]interface{}) {

@@ -6,8 +6,8 @@ import (
 	"strconv"
 
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
-	"github.com/dingoblog/dingo/app/utils"
+	"github.com/covrom/dingo/app/model"
+	"github.com/covrom/dingo/app/utils"
 )
 
 func registerPostHandlers(app *golf.Application, routes map[string]map[string]interface{}) {

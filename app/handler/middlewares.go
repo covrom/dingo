@@ -5,7 +5,7 @@ import (
 	"strconv"
 
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/model"
+	"github.com/covrom/dingo/app/model"
 )
 
 func AuthMiddleware(next golf.HandlerFunc) golf.HandlerFunc {

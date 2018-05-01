@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/covrom/dingo/app/handler"
+	"github.com/covrom/dingo/app/model"
 	"github.com/dinever/golf"
-	"github.com/dingoblog/dingo/app/handler"
-	"github.com/dingoblog/dingo/app/model"
 )
 
 func fileExists(filename string) bool {
