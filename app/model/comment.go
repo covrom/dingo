@@ -31,7 +31,7 @@ type Comment struct {
 	Type      string     //`meddler:"type"`
 	Parent    int64      //`meddler:"parent"`
 	UserId    int64      //`meddler:"user_id"`
-	Children  *Comments  //`meddler:"-"`
+	Children  *Comments  `json:"-"` //`meddler:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
@@ -217,11 +217,11 @@ func DeleteComment(id int64) error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	chields := new(Comments)
-	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": id}).All(chields)
+	childs := new(Comments)
+	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": id}).All(childs)
 	if err == nil {
-		for _, chield := range *chields {
-			DeleteComment(chield.Id)
+		for _, child := range *childs {
+			DeleteComment(child.Id)
 		}
 	}
 
