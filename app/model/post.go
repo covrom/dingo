@@ -1,7 +1,6 @@
 package model
 
 import (
-	"database/sql"
 	"encoding/json"
 	"fmt"
 	"strconv"
@@ -302,7 +301,7 @@ func (p *Post) Publish(by int64) error {
 func DeletePostTagsByPostId(post_id int64) error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"PostId": post_id})
+	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"post_id": post_id})
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
@@ -371,57 +370,113 @@ func (p *Post) GetPostBySlug(slug string) error {
 	return err
 }
 
+type PostTags []*PostTag
+
 // GetPostsByTag returns a new pager based all the Posts associated with a Tag.
 func (p *Posts) GetPostsByTag(tagId, page, size int64, onlyPublished bool) (*utils.Pager, error) {
 	var (
 		pager *utils.Pager
 		count int64
 	)
-	row := db.QueryRow(stmtGetPostsCountByTag, tagId)
-	err := row.Scan(&count)
+
+	session := mdb.Copy()
+	defer session.Close()
+
+	ptags := new(PostTags)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tag_id": tagId}).All(ptags)
 	if err != nil {
 		utils.LogOnError(err, "Unable to get posts by tag.", true)
 		return nil, err
 	}
+
+	ids := make([]int64, len(*ptags))
+	if len(*ptags) > 0 {
+		for i, v := range *ptags {
+			ids[i] = v.PostId
+		}
+		cnt, err := session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Count()
+		if err != nil {
+			utils.LogOnError(err, "Unable to get posts by tag.", true)
+			return nil, err
+		}
+		count = int64(cnt)
+	}
+
+	// row := db.QueryRow(stmtGetPostsCountByTag, tagId)
+	// err := row.Scan(&count)
+	// if err != nil {
+	// 	utils.LogOnError(err, "Unable to get posts by tag.", true)
+	// 	return nil, err
+	// }
+
 	pager = utils.NewPager(page, size, count)
 
 	if !pager.IsValid {
 		return pager, fmt.Errorf("Page not found")
 	}
-	var where string
+
+	// var where string
 	if onlyPublished {
-		where = "published AND"
+		// where = "published AND"
+		err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}, "published": true}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+	} else {
+		err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
-	err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
+	// err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
 	return pager, err
 }
 
 // GetAllPostsByTag gets all the Posts with the associated Tag.
 func (p *Posts) GetAllPostsByTag(tagId int64) error {
-	err := meddler.QueryAll(db, p, stmtGetAllPostsByTag, tagId)
+	session := mdb.Copy()
+	defer session.Close()
+
+	ptags := new(PostTags)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tag_id": tagId}).All(ptags)
+	if err != nil {
+		return err
+	}
+
+	ids := make([]int64, len(*ptags))
+	for i, v := range *ptags {
+		ids[i] = v.PostId
+	}
+	err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Sort("-published_at").All(p)
+
 	return err
 }
 
 // GetNumberOfPosts gets the total number of posts in the DB.
 func GetNumberOfPosts(isPage bool, published bool) (int64, error) {
-	var count int64
-	var where string
-	if isPage {
-		where = `page = 1`
-	} else {
-		where = `page = 0`
-	}
-	if published {
-		where = where + ` AND published`
-	}
-	var row *sql.Row
+	session := mdb.Copy()
+	defer session.Close()
 
-	row = db.QueryRow(fmt.Sprintf(stmtNumberOfPosts, where))
-	err := row.Scan(&count)
-	if err != nil {
-		return 0, err
+	var err error
+	var cnt int
+	if published {
+		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Count()
+	} else {
+		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Count()
 	}
-	return count, nil
+
+	// var count int64
+	// var where string
+	// if isPage {
+	// 	where = `page = 1`
+	// } else {
+	// 	where = `page = 0`
+	// }
+	// if published {
+	// 	where = where + ` AND published`
+	// }
+	// var row *sql.Row
+
+	// row = db.QueryRow(fmt.Sprintf(stmtNumberOfPosts, where))
+	// err := row.Scan(&count)
+	// if err != nil {
+	// 	return 0, err
+	// }
+	return int64(cnt), err
 }
 
 // GetPostList returns a new pager based on all the posts in the DB.
