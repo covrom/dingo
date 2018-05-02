@@ -50,10 +50,16 @@ var shema_indexes = []shema_struct{
 		Key: []string{"IsRead"},
 	}},
 	shema_struct{"posts", mgo.Index{
-		Key:        []string{"Id"},
+		Key:        []string{"id"},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
 		Sparse:     true,
+	}},
+	shema_struct{"posts", mgo.Index{
+		Key: []string{"slug"},
+	}},
+	shema_struct{"posts_tags", mgo.Index{
+		Key: []string{"PostId"},
 	}},
 }

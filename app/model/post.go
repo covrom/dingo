@@ -256,7 +256,7 @@ func (p *Post) Update() error {
 
 	session := mdb.Copy()
 	defer session.Close()
-	_, err = session.DB(DBName).C("posts").Upsert(bson.M{"Id": p.Id}, p)
+	_, err = session.DB(DBName).C("posts").Upsert(bson.M{"id": p.Id}, p)
 
 	// err = meddler.Update(db, "posts", p)
 	return err
@@ -291,7 +291,7 @@ func (p *Post) Publish(by int64) error {
 
 	session := mdb.Copy()
 	defer session.Close()
-	_, err := session.DB(DBName).C("posts").Upsert(bson.M{"Id": p.Id}, p)
+	_, err := session.DB(DBName).C("posts").Upsert(bson.M{"id": p.Id}, p)
 
 	// err := meddler.Update(db, "posts", p)
 	return err
@@ -300,32 +300,41 @@ func (p *Post) Publish(by int64) error {
 // DeletePostTagsByPostId deletes removes tags associated with the given post
 // from the DB.
 func DeletePostTagsByPostId(post_id int64) error {
-	writeDB, err := db.Begin()
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	_, err = writeDB.Exec(stmtDeletePostTagsByPostId, post_id)
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	return writeDB.Commit()
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"PostId": post_id})
+
+	// writeDB, err := db.Begin()
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	// _, err = writeDB.Exec(stmtDeletePostTagsByPostId, post_id)
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	return err //writeDB.Commit()
 }
 
 // DeletePostById deletes the given Post from the DB.
 func DeletePostById(id int64) error {
-	writeDB, err := db.Begin()
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	_, err = writeDB.Exec(stmtDeletePostById, id)
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	err = writeDB.Commit()
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("posts").Remove(bson.M{"id": id})
+
+	// writeDB, err := db.Begin()
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	// _, err = writeDB.Exec(stmtDeletePostById, id)
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	// err = writeDB.Commit()
+
 	if err != nil {
 		return err
 	}
@@ -344,13 +353,21 @@ func (post *Post) GetPostById(id ...int64) error {
 	} else {
 		postId = id[0]
 	}
-	err := meddler.QueryRow(db, post, stmtGetPostById, postId)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("posts").Find(bson.M{"id": postId}).One(post)
+	// err := meddler.QueryRow(db, post, stmtGetPostById, postId)
 	return err
 }
 
 // GetPostBySlug gets the post based on the Post Slug.
 func (p *Post) GetPostBySlug(slug string) error {
-	err := meddler.QueryRow(db, p, stmtGetPostBySlug, slug)
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("posts").Find(bson.M{"slug": slug}).One(p)
+
+	// err := meddler.QueryRow(db, p, stmtGetPostBySlug, slug)
 	return err
 }
 

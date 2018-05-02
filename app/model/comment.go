@@ -233,11 +233,11 @@ func DeleteComment(id int64) error {
 	// 	return err
 	// }
 	// _, err = writeDB.Exec(stmtDeleteCommentById, id)
-	if err != nil {
-		// writeDB.Rollback()
-		return err
-	}
-	return nil //writeDB.Commit()
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	return err //writeDB.Commit()
 }
 
 // ValidateComment validates a comment to ensure that all required data exists
