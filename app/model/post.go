@@ -11,7 +11,9 @@ import (
 	"net/http"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo/bson"
 	"github.com/russross/meddler"
+	// "github.com/russross/meddler"
 )
 
 const stmtGetPostById = `SELECT * FROM posts WHERE id = ?`
@@ -205,23 +207,37 @@ func (p *Post) Insert() error {
 	if !PostChangeSlug(p.Slug) {
 		p.Slug = generateNewSlug(p.Slug, 1)
 	}
-	err := meddler.Insert(db, "posts", p)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("posts").Insert(p)
+
+	// err := meddler.Insert(db, "posts", p)
 	return err
+}
+
+type PostTag struct {
+	PostId int64 `json:"post_id"`
+	TagId  int64 `json:"tag_id"`
 }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
 func InsertPostTag(postID int64, tagID int64) error {
-	writeDB, err := db.Begin()
+	// writeDB, err := db.Begin()
+	// if err != nil {
+	// 	writeDB.Rollback()
+	// 	return err
+	// }
+	// _, err = writeDB.Exec(stmtInsertPostTag, nil, postID, tagID)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("posts_tags").Insert(&PostTag{PostId: postID, TagId: tagID})
 	if err != nil {
-		writeDB.Rollback()
+		// writeDB.Rollback()
 		return err
 	}
-	_, err = writeDB.Exec(stmtInsertPostTag, nil, postID, tagID)
-	if err != nil {
-		writeDB.Rollback()
-		return err
-	}
-	return writeDB.Commit()
+	return nil //writeDB.Commit()
 }
 
 // Update updates an existing post in the DB.
@@ -234,7 +250,12 @@ func (p *Post) Update() error {
 	if p.Slug != currentPost.Slug && !PostChangeSlug(p.Slug) {
 		p.Slug = generateNewSlug(p.Slug, 1)
 	}
-	err = meddler.Update(db, "posts", p)
+	
+	session := mdb.Copy()
+	defer session.Close()
+	_, err = session.DB(DBName).C("posts").Upsert(bson.M{"Id": p.Id}, p)
+
+	// err = meddler.Update(db, "posts", p)
 	return err
 }
 
