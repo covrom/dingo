@@ -37,9 +37,23 @@ var shema_indexes = []shema_struct{
 		Key: []string{"PostId"},
 	}},
 	shema_struct{"messages", mgo.Index{
+		Key:        []string{"Id"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
+	}},
+	shema_struct{"messages", mgo.Index{
 		Key: []string{"-CreatedAt"},
 	}},
 	shema_struct{"messages", mgo.Index{
 		Key: []string{"IsRead"},
+	}},
+	shema_struct{"posts", mgo.Index{
+		Key:        []string{"Id"},
+		Unique:     true,
+		DropDups:   true,
+		Background: true,
+		Sparse:     true,
 	}},
 }

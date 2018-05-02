@@ -242,6 +242,9 @@ func InsertPostTag(postID int64, tagID int64) error {
 
 // Update updates an existing post in the DB.
 func (p *Post) Update() error {
+
+	// TODO: Apply
+
 	currentPost := &Post{Id: p.Id}
 	err := currentPost.GetPostById()
 	if err != nil {
@@ -250,7 +253,7 @@ func (p *Post) Update() error {
 	if p.Slug != currentPost.Slug && !PostChangeSlug(p.Slug) {
 		p.Slug = generateNewSlug(p.Slug, 1)
 	}
-	
+
 	session := mdb.Copy()
 	defer session.Close()
 	_, err = session.DB(DBName).C("posts").Upsert(bson.M{"Id": p.Id}, p)
@@ -285,7 +288,12 @@ func (p *Post) Publish(by int64) error {
 	p.PublishedAt = utils.Now()
 	p.PublishedBy = by
 	p.IsPublished = true
-	err := meddler.Update(db, "posts", p)
+
+	session := mdb.Copy()
+	defer session.Close()
+	_, err := session.DB(DBName).C("posts").Upsert(bson.M{"Id": p.Id}, p)
+
+	// err := meddler.Update(db, "posts", p)
 	return err
 }
 
