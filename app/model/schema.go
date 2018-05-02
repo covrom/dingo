@@ -36,4 +36,10 @@ var shema_indexes = []shema_struct{
 	shema_struct{"comments", mgo.Index{
 		Key: []string{"PostId"},
 	}},
+	shema_struct{"messages", mgo.Index{
+		Key: []string{"-CreatedAt"},
+	}},
+	shema_struct{"messages", mgo.Index{
+		Key: []string{"IsRead"},
+	}},
 }

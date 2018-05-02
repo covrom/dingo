@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
-	"github.com/russross/meddler"
+	"github.com/globalsign/mgo/bson"
 )
 
 const stmtGetUnreadMessages = `SELECT * FROM messages WHERE is_read = 0 ORDER BY created_at DESC LIMIT 10 OFFSET 0`
@@ -24,11 +24,11 @@ func init() {
 // A Message is a simple bit of info, used to alert the admin on the admin
 // panel about things like new comments, etc.
 type Message struct {
-	Id        int        `meddler:"id,pk"`
-	Type      string     `meddler:"type"`
-	Data      string     `meddler:"data"`
-	IsRead    bool       `meddler:"is_read"`
-	CreatedAt *time.Time `meddler:"created_at"`
+	Id        int        //`meddler:"id,pk"`
+	Type      string     //`meddler:"type"`
+	Data      string     //`meddler:"data"`
+	IsRead    bool       //`meddler:"is_read"`
+	CreatedAt *time.Time //`meddler:"created_at"`
 }
 
 // Messages is a slice of "Message"s
@@ -56,7 +56,11 @@ func NewMessage(tp string, data interface{}) *Message {
 
 // Insert saves a message to the DB.
 func (m *Message) Insert() error {
-	err := meddler.Insert(db, "messages", m)
+	session := mdb.Copy()
+	defer session.Close()
+
+	err := session.DB(DBName).C("messages").Insert(m)
+	// err := meddler.Insert(db, "messages", m)
 	return err
 }
 
@@ -67,7 +71,11 @@ func SetMessageGenerator(name string, fn func(v interface{}) string) {
 
 // GetUnreadMessages gets all unread messages from the DB.
 func (m *Messages) GetUnreadMessages() {
-	err := meddler.QueryAll(db, m, stmtGetUnreadMessages)
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("messages").Find(bson.M{"IsRead": false}).Sort("-CreatedAt").Limit(10).All(m)
+
+	// err := meddler.QueryAll(db, m, stmtGetUnreadMessages)
 	if err != nil {
 		panic(err)
 	}

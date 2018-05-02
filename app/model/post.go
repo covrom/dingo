@@ -39,28 +39,28 @@ var safeOrderByStmt = map[string]string{
 // A Post contains all the content required to populate a post or page on the
 // blog. It also contains info to help sort and display the post.
 type Post struct {
-	Id              int64      `meddler:"id,pk",json:"id"`
-	Title           string     `meddler:"title",json:"title"`
-	Slug            string     `meddler:"slug",json:"slug"`
-	Markdown        string     `meddler:"markdown",json:"markdown"`
-	Html            string     `meddler:"html",json:"html"`
-	Image           string     `meddler:"image",json:"image"`
-	IsFeatured      bool       `meddler:"featured",json:"featured"`
-	IsPage          bool       `meddler:"page",json:"is_page"` // Using "is_page" instead of "page" since nouns are generally non-bools
-	AllowComment    bool       `meddler:"allow_comment",json:"allow_comment"`
-	CommentNum      int64      `meddler:"comment_num",json:"comment_num"`
-	IsPublished     bool       `meddler:"published",json:"published"`
-	Language        string     `meddler:"language",json:"language"`
-	MetaTitle       string     `meddler:"meta_title",json:"meta_title"`
-	MetaDescription string     `meddler:"meta_description",json:"meta_description"`
-	CreatedAt       *time.Time `meddler:"created_at",json:"created_at"`
-	CreatedBy       int64      `meddler:"created_by",json:"created_by"`
-	UpdatedAt       *time.Time `meddler:"updated_at",json:"updated_at"`
-	UpdatedBy       int64      `meddler:"updated_by",json:"updated_by"`
-	PublishedAt     *time.Time `meddler:"published_at",json:"published_at"`
-	PublishedBy     int64      `meddler:"published_by",json:"published_by"`
-	Hits            int64      `meddler:"-"`
-	Category        string     `meddler:"-"`
+	Id              int64      `json:"id"`
+	Title           string     `json:"title"`
+	Slug            string     `json:"slug"`
+	Markdown        string     `json:"markdown"`
+	Html            string     `json:"html"`
+	Image           string     `json:"image"`
+	IsFeatured      bool       `json:"featured"`
+	IsPage          bool       `json:"is_page"` // Using "is_page" instead of "page" since nouns are generally non-bools
+	AllowComment    bool       `json:"allow_comment"`
+	CommentNum      int64      `json:"comment_num"`
+	IsPublished     bool       `json:"published"`
+	Language        string     `json:"language"`
+	MetaTitle       string     `json:"meta_title"`
+	MetaDescription string     `json:"meta_description"`
+	CreatedAt       *time.Time `json:"created_at"`
+	CreatedBy       int64      `json:"created_by"`
+	UpdatedAt       *time.Time `json:"updated_at"`
+	UpdatedBy       int64      `json:"updated_by"`
+	PublishedAt     *time.Time `json:"published_at"`
+	PublishedBy     int64      `json:"published_by"`
+	Hits            int64      `json:"-"`
+	Category        string     `json:"-"`
 }
 
 // Posts is a slice of "Post"s
