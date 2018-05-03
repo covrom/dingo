@@ -13,6 +13,7 @@ import (
 func mockTag(name, slug string) *Tag {
 	return NewTag(name, slug)
 }
+
 func tagEqualCheck(tag, expected *Tag) {
 	So(tag.Name, ShouldEqual, expected.Name)
 	So(tag.Slug, ShouldEqual, expected.Slug)

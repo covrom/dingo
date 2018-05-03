@@ -11,7 +11,6 @@ import (
 
 	"github.com/covrom/dingo/app/utils"
 	"github.com/globalsign/mgo/bson"
-	"github.com/russross/meddler"
 	// "github.com/russross/meddler"
 )
 
@@ -523,17 +522,30 @@ func (posts *Posts) GetPostList(page, size int64, isPage bool, onlyPublished boo
 //         "published_at"
 //         "published_at DESC"
 func (p *Posts) GetAllPostList(isPage bool, onlyPublished bool, orderBy string) error {
-	var where string
-	if isPage {
-		where = `page = 1`
-	} else {
-		where = `page = 0`
-	}
-	if onlyPublished {
-		where = where + ` AND published`
-	}
+	// var where string
+	// if isPage {
+	// 	where = `page = 1`
+	// } else {
+	// 	where = `page = 0`
+	// }
+	// if onlyPublished {
+	// 	where = where + ` AND published`
+	// }
+
+	session := mdb.Copy()
+	defer session.Close()
+
+	var err error
+
 	safeOrderBy := getSafeOrderByStmt(orderBy)
-	err := meddler.QueryAll(db, p, fmt.Sprintf(stmtGetAllPostList, where, safeOrderBy))
+
+	if onlyPublished {
+		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Sort(safeOrderBy).All(p)
+	} else {
+		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Sort(safeOrderBy).All(p)
+	}
+
+	// err := meddler.QueryAll(db, p, fmt.Sprintf(stmtGetAllPostList, where, safeOrderBy))
 	return err
 }
 
@@ -573,14 +585,23 @@ func getSafeOrderByStmt(orderBy string) string {
 }
 
 func GetPublishedPosts(offset, limit int) (Posts, error) {
+	session := mdb.Copy()
+	defer session.Close()
+
 	var posts Posts
-	err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 1, offset, limit)
+	err := session.DB(DBName).C("posts").Find(bson.M{"published": true}).Skip(offset).Limit(limit).All(&posts)
+
+	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 1, offset, limit)
 	return posts, err
 }
 
 func GetUnpublishedPosts(offset, limit int) (Posts, error) {
+	session := mdb.Copy()
+	defer session.Close()
+
 	var posts Posts
-	err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 0, offset, limit)
+	err := session.DB(DBName).C("posts").Find(bson.M{"published": false}).Skip(offset).Limit(limit).All(&posts)
+	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 0, offset, limit)
 	return posts, err
 }
 
