@@ -30,11 +30,11 @@ const stmtDeletePostById = `DELETE FROM posts WHERE id = ?`
 
 var safeOrderByStmt = map[string]string{
 	"created_at":        "created_at",
-	"created_at DESC":   "created_at DESC",
+	"created_at DESC":   "-created_at",
 	"updated_at":        "updated_at",
-	"updated_at DESC":   "updated_at DESC",
+	"updated_at DESC":   "-updated_at",
 	"published_at":      "published_at",
-	"published_at DESC": "published_at DESC",
+	"published_at DESC": "-published_at",
 }
 
 // A Post contains all the content required to populate a post or page on the
@@ -489,17 +489,27 @@ func (posts *Posts) GetPostList(page, size int64, isPage bool, onlyPublished boo
 		return pager, fmt.Errorf("Page not found")
 	}
 
-	var where string
-	if isPage {
-		where = `page = 1`
-	} else {
-		where = `page = 0`
-	}
-	if onlyPublished {
-		where = where + ` AND published`
-	}
 	safeOrderBy := getSafeOrderByStmt(orderBy)
-	err = meddler.QueryAll(db, posts, fmt.Sprintf(stmtGetPostList, where, safeOrderBy), size, pager.Begin)
+
+	session := mdb.Copy()
+	defer session.Close()
+
+	if onlyPublished {
+		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
+	} else {
+		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
+	}
+
+	// var where string
+	// if isPage {
+	// 	where = `page = 1`
+	// } else {
+	// 	where = `page = 0`
+	// }
+	// if onlyPublished {
+	// 	where = where + ` AND published`
+	// }
+	// err = meddler.QueryAll(db, posts, fmt.Sprintf(stmtGetPostList, where, safeOrderBy), size, pager.Begin)
 	return pager, err
 }
 
@@ -559,7 +569,7 @@ func getSafeOrderByStmt(orderBy string) string {
 	if stmt, ok := safeOrderByStmt[orderBy]; ok {
 		return stmt
 	}
-	return "published_at DESC"
+	return "-published_at"
 }
 
 func GetPublishedPosts(offset, limit int) (Posts, error) {
