@@ -150,7 +150,7 @@ func (tags *Tags) GetTagsByPostId(postId bson.ObjectId) error {
 func (tag *Tag) GetTag() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tags").Find(bson.M{"_id": tag.Id}).All(tag)
+	err := session.DB(DBName).C("tags").FindId(tag.Id).All(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
 	return err
 }
