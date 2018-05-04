@@ -11,17 +11,19 @@ import (
 	"os"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
+
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // A JWT is a JSON web token, and contains all the values necessary to create
 // and validate tokens.
 type JWT struct {
-	UserRole   int    `json:"user_role"`
-	UserID     int64  `json:"user_id"`
-	UserEmail  string `json:"user_email"`
-	Expiration int64  `json:"expiration"`
-	Token      string `json:"token"`
+	UserRole   int           `json:"user_role"`
+	UserID     bson.ObjectId `json:"user_id"`
+	UserEmail  string        `json:"user_email"`
+	Expiration int64         `json:"expiration"`
+	Token      string        `json:"token"`
 }
 
 var (
@@ -61,7 +63,7 @@ func NewJWT(user *User) (JWT, error) {
 	exp := time.Now().Add(time.Minute * 3600).Unix()
 	claims := jwt.MapClaims{
 		"UserRole":  user.Role,
-		"UserID":    user.Id,
+		"UserID":    user.Id.Hex(),
 		"UserEmail": user.Email,
 		"exp":       exp,
 	}
@@ -84,12 +86,12 @@ func NewJWT(user *User) (JWT, error) {
 // NewJWTFromToken returns a JWT for the given token.
 func NewJWTFromToken(token *jwt.Token) JWT {
 	userRole := token.Claims.(jwt.MapClaims)["UserRole"].(float64)
-	userID := token.Claims.(jwt.MapClaims)["UserID"].(float64)
+	userID := token.Claims.(jwt.MapClaims)["UserID"].(string)
 	userEmail := token.Claims.(jwt.MapClaims)["UserEmail"].(string)
 	expiration := token.Claims.(jwt.MapClaims)["exp"].(float64)
 	return JWT{
 		UserRole:   int(userRole),
-		UserID:     int64(userID),
+		UserID:     bson.ObjectIdHex(userID),
 		UserEmail:  userEmail,
 		Expiration: int64(expiration),
 		Token:      token.Raw,

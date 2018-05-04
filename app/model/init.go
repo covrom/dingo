@@ -153,8 +153,8 @@ func createWelcomeData() error {
 	p.Html = utils.Markdown2Html(p.Markdown)
 	p.AllowComment = true
 	p.Category = ""
-	p.CreatedBy = 0
-	p.UpdatedBy = 0
+	p.CreatedBy = ""
+	p.UpdatedBy = ""
 	p.IsPublished = true
 	p.IsPage = false
 	tags := GenerateTagsFromCommaString("Welcome, Dingo")
@@ -170,10 +170,10 @@ func createWelcomeData() error {
 	c.Content = "Welcome to Dingo! This is your first comment."
 	c.Avatar = utils.Gravatar(c.Email, "50")
 	c.PostId = p.Id
-	c.Parent = int64(0)
+	c.Parent = ""
 	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = 0
+	c.UserId = ""
 	c.Approved = true
 	c.Save()
 
