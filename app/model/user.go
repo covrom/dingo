@@ -20,27 +20,27 @@ const stmtGetNumberOfUsers = `SELECT COUNT(*) FROM users`
 // A User is a user on the site.
 type User struct {
 	Id             bson.ObjectId `json:"_id"`
-	Name           string        `meddler:"name"`
-	Slug           string        `meddler:"slug"`
-	HashedPassword string        `meddler:"password"`
-	Email          string        `meddler:"email"`
-	Image          string        `meddler:"image"`    // NULL
-	Cover          string        `meddler:"cover"`    // NULL
-	Bio            string        `meddler:"bio"`      // NULL
-	Website        string        `meddler:"website"`  // NULL
-	Location       string        `meddler:"location"` // NULL
-	Accessibility  string        `meddler:"accessibility"`
-	Status         string        `meddler:"status"`
-	Language       string        `meddler:"language"`
-	Lastlogin      *time.Time    `meddler:"last_login"`
-	CreatedAt      *time.Time    `meddler:"created_at"`
-	CreatedBy      int           `meddler:"created_by"`
-	UpdatedAt      *time.Time    `meddler:"updated_at"`
-	UpdatedBy      int           `meddler:"updated_by"`
-	Role           int           `meddler:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
+	Name           string        //`meddler:"name"`
+	Slug           string        //`meddler:"slug"`
+	HashedPassword string        //`meddler:"password"`
+	Email          string        //`meddler:"email"`
+	Image          string        //`meddler:"image"`    // NULL
+	Cover          string        //`meddler:"cover"`    // NULL
+	Bio            string        //`meddler:"bio"`      // NULL
+	Website        string        //`meddler:"website"`  // NULL
+	Location       string        //`meddler:"location"` // NULL
+	Accessibility  string        //`meddler:"accessibility"`
+	Status         string        //`meddler:"status"`
+	Language       string        //`meddler:"language"`
+	Lastlogin      *time.Time    //`meddler:"last_login"`
+	CreatedAt      *time.Time    //`meddler:"created_at"`
+	CreatedBy      bson.ObjectId //`meddler:"created_by"`
+	UpdatedAt      *time.Time    //`meddler:"updated_at"`
+	UpdatedBy      bson.ObjectId //`meddler:"updated_by"`
+	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
-var ghostUser = &User{Id: 0, Name: "Dingo User", Email: "example@example.com"}
+var ghostUser = &User{Id: "", Name: "Blog User", Email: "example@example.com"}
 
 // NewUser creates a new user from the given email and name, with the CreatedAt
 // and UpdatedAt fields set to the current time.
@@ -61,7 +61,7 @@ func (u *User) Create(password string) error {
 	if err != nil {
 		return err
 	}
-	u.CreatedBy = 0
+	u.CreatedBy = ""
 	return u.Save()
 }
 
@@ -80,7 +80,14 @@ func (u *User) Update() error {
 	u.UpdatedAt = utils.Now()
 	// TODO:
 	//u.UpdatedBy = ...
-	err := meddler.Update(db, "users", u)
+	session := mdb.Copy()
+	defer session.Close()
+	if len(u.Id) == 0 {
+		u.Id = bson.NewObjectId()
+	}
+	_, err := session.DB(DBName).C("users").UpsertId(u.Id, u)
+
+	// err := meddler.Update(db, "users", u)
 	return err
 }
 
