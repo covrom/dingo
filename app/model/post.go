@@ -14,18 +14,18 @@ import (
 	// "github.com/russross/meddler"
 )
 
-const stmtGetPostById = `SELECT * FROM posts WHERE id = ?`
-const stmtGetPostBySlug = `SELECT * FROM posts WHERE slug = ?`
-const stmtGetPostsByTag = `SELECT * FROM posts WHERE %s id IN ( SELECT post_id FROM posts_tags WHERE tag_id = ? ) ORDER BY published_at DESC LIMIT ? OFFSET ?`
-const stmtGetAllPostsByTag = `SELECT * FROM posts WHERE id IN ( SELECT post_id FROM posts_tags WHERE tag_id = ?) ORDER BY published_at DESC `
-const stmtGetPostsCountByTag = "SELECT count(*) FROM posts, posts_tags WHERE posts_tags.post_id = posts.id AND posts.published AND posts_tags.tag_id = ?"
-const stmtGetPostsOffsetLimit = `SELECT * FROM posts WHERE published = ? LIMIT ?, ?`
-const stmtInsertPostTag = `INSERT INTO posts_tags (id, post_id, tag_id) VALUES (?, ?, ?)`
-const stmtDeletePostTagsByPostId = `DELETE FROM posts_tags WHERE post_id = ?`
-const stmtNumberOfPosts = "SELECT count(*) FROM posts WHERE %s"
-const stmtGetAllPostList = `SELECT * FROM posts WHERE %s ORDER BY %s`
-const stmtGetPostList = `SELECT * FROM posts WHERE %s ORDER BY %s LIMIT ? OFFSET ?`
-const stmtDeletePostById = `DELETE FROM posts WHERE id = ?`
+// const stmtGetPostById = `SELECT * FROM posts WHERE id = ?`
+// const stmtGetPostBySlug = `SELECT * FROM posts WHERE slug = ?`
+// const stmtGetPostsByTag = `SELECT * FROM posts WHERE %s id IN ( SELECT post_id FROM posts_tags WHERE tag_id = ? ) ORDER BY published_at DESC LIMIT ? OFFSET ?`
+// const stmtGetAllPostsByTag = `SELECT * FROM posts WHERE id IN ( SELECT post_id FROM posts_tags WHERE tag_id = ?) ORDER BY published_at DESC `
+// const stmtGetPostsCountByTag = "SELECT count(*) FROM posts, posts_tags WHERE posts_tags.post_id = posts.id AND posts.published AND posts_tags.tag_id = ?"
+// const stmtGetPostsOffsetLimit = `SELECT * FROM posts WHERE published = ? LIMIT ?, ?`
+// const stmtInsertPostTag = `INSERT INTO posts_tags (id, post_id, tag_id) VALUES (?, ?, ?)`
+// const stmtDeletePostTagsByPostId = `DELETE FROM posts_tags WHERE post_id = ?`
+// const stmtNumberOfPosts = "SELECT count(*) FROM posts WHERE %s"
+// const stmtGetAllPostList = `SELECT * FROM posts WHERE %s ORDER BY %s`
+// const stmtGetPostList = `SELECT * FROM posts WHERE %s ORDER BY %s LIMIT ? OFFSET ?`
+// const stmtDeletePostById = `DELETE FROM posts WHERE id = ?`
 
 var safeOrderByStmt = map[string]string{
 	"created_at":        "created_at",
@@ -39,28 +39,28 @@ var safeOrderByStmt = map[string]string{
 // A Post contains all the content required to populate a post or page on the
 // blog. It also contains info to help sort and display the post.
 type Post struct {
-	Id              int64      `json:"id"`
-	Title           string     `json:"title"`
-	Slug            string     `json:"slug"`
-	Markdown        string     `json:"markdown"`
-	Html            string     `json:"html"`
-	Image           string     `json:"image"`
-	IsFeatured      bool       `json:"featured"`
-	IsPage          bool       `json:"is_page"` // Using "is_page" instead of "page" since nouns are generally non-bools
-	AllowComment    bool       `json:"allow_comment"`
-	CommentNum      int64      `json:"comment_num"`
-	IsPublished     bool       `json:"published"`
-	Language        string     `json:"language"`
-	MetaTitle       string     `json:"meta_title"`
-	MetaDescription string     `json:"meta_description"`
-	CreatedAt       *time.Time `json:"created_at"`
-	CreatedBy       int64      `json:"created_by"`
-	UpdatedAt       *time.Time `json:"updated_at"`
-	UpdatedBy       int64      `json:"updated_by"`
-	PublishedAt     *time.Time `json:"published_at"`
-	PublishedBy     int64      `json:"published_by"`
-	Hits            int64      `json:"-"`
-	Category        string     `json:"-"`
+	Id              bson.ObjectId `json:"_id"`
+	Title           string        `json:"title"`
+	Slug            string        `json:"slug"`
+	Markdown        string        `json:"markdown"`
+	Html            string        `json:"html"`
+	Image           string        `json:"image"`
+	IsFeatured      bool          `json:"featured"`
+	IsPage          bool          `json:"is_page"` // Using "is_page" instead of "page" since nouns are generally non-bools
+	AllowComment    bool          `json:"allow_comment"`
+	CommentNum      int64         `json:"comment_num"`
+	IsPublished     bool          `json:"published"`
+	Language        string        `json:"language"`
+	MetaTitle       string        `json:"meta_title"`
+	MetaDescription string        `json:"meta_description"`
+	CreatedAt       *time.Time    `json:"created_at"`
+	CreatedBy       int64         `json:"created_by"`
+	UpdatedAt       *time.Time    `json:"updated_at"`
+	UpdatedBy       int64         `json:"updated_by"`
+	PublishedAt     *time.Time    `json:"published_at"`
+	PublishedBy     int64         `json:"published_by"`
+	Hits            int64         `json:"-"`
+	Category        string        `json:"-"`
 }
 
 // Posts is a slice of "Post"s
@@ -215,8 +215,8 @@ func (p *Post) Insert() error {
 }
 
 type PostTag struct {
-	PostId int64 `json:"post_id"`
-	TagId  int64 `json:"tag_id"`
+	PostId bson.ObjectId `json:"post_id"`
+	TagId  bson.ObjectId `json:"tag_id"`
 }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
@@ -426,7 +426,7 @@ func (p *Posts) GetPostsByTag(tagId, page, size int64, onlyPublished bool) (*uti
 }
 
 // GetAllPostsByTag gets all the Posts with the associated Tag.
-func (p *Posts) GetAllPostsByTag(tagId int64) error {
+func (p *Posts) GetAllPostsByTag(tagId bson.ObjectId) error {
 	session := mdb.Copy()
 	defer session.Close()
 

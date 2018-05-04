@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
-	"github.com/russross/meddler"
+	"github.com/globalsign/mgo/bson"
 )
 
 // A Tag is a keyword associated with a post.
 type Tag struct {
-	Id        int64      //`meddler:"id,pk"`
-	Name      string     //`meddler:"name"`
-	Slug      string     //`meddler:"slug"`
-	Hidden    bool       //`meddler:"hidden"`
-	CreatedAt *time.Time //`meddler:"created_at"`
-	CreatedBy int64      //`meddler:"created_by"`
-	UpdatedAt *time.Time //`meddler:"updated_at"`
-	UpdatedBy int64      //`meddler:"updated_by"`
+	Id        bson.ObjectId `json:"_id"` //`meddler:"id,pk"`
+	Name      string        //`meddler:"name"`
+	Slug      string        //`meddler:"slug"`
+	Hidden    bool          //`meddler:"hidden"`
+	CreatedAt *time.Time    //`meddler:"created_at"`
+	CreatedBy int64         //`meddler:"created_by"`
+	UpdatedAt *time.Time    //`meddler:"updated_at"`
+	UpdatedBy int64         //`meddler:"updated_by"`
 }
 
 // Url returns the URL of the given slug.
@@ -109,57 +109,97 @@ func GenerateTagsFromCommaString(input string) []*Tag {
 
 // Insert inserts the tag into the DB.
 func (t *Tag) Insert() error {
-	err := meddler.Insert(db, "tags", t)
+	session := mdb.Copy()
+	defer session.Close()
+
+	if len(t.Id) == 0 {
+		t.Id = bson.NewObjectId()
+	}
+	_, err := session.DB(DBName).C("tags").UpsertId(t.Id, t)
+
+	// err := meddler.Insert(db, "tags", t)
 	return err
 }
 
 // Update updates an existing tag in the DB.
 func (t *Tag) Update() error {
-	err := meddler.Insert(db, "tags", t)
+	session := mdb.Copy()
+	defer session.Close()
+	_, err := session.DB(DBName).C("tags").UpsertId(t.Id, t)
+	// err := meddler.Insert(db, "tags", t)
 	return err
 }
 
 // GetTagsByPostId finds all the tags with the give PostID
-func (tags *Tags) GetTagsByPostId(postId int64) error {
-	err := meddler.QueryAll(db, tags, stmtGetTagsByPostId, postId)
+func (tags *Tags) GetTagsByPostId(postId bson.ObjectId) error {
+	session := mdb.Copy()
+	defer session.Close()
+
+	var ids []bson.ObjectId
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"post_id": postId}).Distinct("tag_id", ids)
+	if err != nil {
+		return err
+	}
+	err = session.DB(DBName).C("tags").FindId(bson.M{"$in": ids}).All(tags)
+
+	// err := meddler.QueryAll(db, tags, stmtGetTagsByPostId, postId)
 	return err
 }
 
 //GetTag finds any data for the tag in the DB.
 func (tag *Tag) GetTag() error {
-	err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("tags").Find(bson.M{"_id": tag.Id}).All(tag)
+	// err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
 	return err
 }
 
 // GetTagBySlug finds the tag based on the Tag's slug value.
 func (tag *Tag) GetTagBySlug() error {
-	err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("tags").Find(bson.M{"Slug": tag.Slug}).All(tag)
+	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
 }
 
 // GetAllTags gets all the tags in the DB.
 func (tags *Tags) GetAllTags() error {
-	err := meddler.QueryAll(db, tags, stmtGetAllTags)
+	session := mdb.Copy()
+	defer session.Close()
+	err := session.DB(DBName).C("tags").Find().All(tags)
+	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }
 
 //DeleteOldTags removes any unused tags from the DB.
 func DeleteOldTags() error {
-	WriteDB, err := db.Begin()
+
+	session := mdb.Copy()
+	defer session.Close()
+
+	var ids []bson.ObjectId
+	err := session.DB(DBName).C("posts_tags").Find().Distinct("tag_id", ids)
 	if err != nil {
-		WriteDB.Rollback()
 		return err
 	}
-	_, err = WriteDB.Exec(stmtDeleteOldTags)
-	if err != nil {
-		WriteDB.Rollback()
-		return err
-	}
-	return WriteDB.Commit()
+	err = session.DB(DBName).C("tags").RemoveId(bson.M{"$nin": ids})
+	// WriteDB, err := db.Begin()
+	// if err != nil {
+	// 	WriteDB.Rollback()
+	// 	return err
+	// }
+	// _, err = WriteDB.Exec(stmtDeleteOldTags)
+	// if err != nil {
+	// 	WriteDB.Rollback()
+	// 	return err
+	// }
+	return err //WriteDB.Commit()
 }
 
-const stmtGetTagsByPostId = `SELECT * FROM tags WHERE id IN (SELECT tag_id FROM posts_tags WHERE post_id = ?)`
-const stmtGetTag = `SELECT * FROM tags WHERE id = ?`
-const stmtGetTagBySlug = `SELECT * FROM tags WHERE slug = ?`
-const stmtGetAllTags = `SELECT * FROM tags`
-const stmtDeleteOldTags = `DELETE FROM tags WHERE id IN (SELECT id FROM tags EXCEPT SELECT tag_id FROM posts_tags)`
+// const stmtGetTagsByPostId = `SELECT * FROM tags WHERE id IN (SELECT tag_id FROM posts_tags WHERE post_id = ?)`
+// const stmtGetTag = `SELECT * FROM tags WHERE id = ?`
+// const stmtGetTagBySlug = `SELECT * FROM tags WHERE slug = ?`
+// const stmtGetAllTags = `SELECT * FROM tags`
+// const stmtDeleteOldTags = `DELETE FROM tags WHERE id IN (SELECT id FROM tags EXCEPT SELECT tag_id FROM posts_tags)`

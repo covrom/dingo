@@ -55,10 +55,16 @@ var shema_indexes = []shema_struct{
 	shema_struct{"posts", mgo.Index{
 		Key: []string{"id", "is_page", "published"},
 	}},
+
 	shema_struct{"posts_tags", mgo.Index{
 		Key: []string{"post_id"},
 	}},
 	shema_struct{"posts_tags", mgo.Index{
 		Key: []string{"tag_id"},
 	}},
+	
+	shema_struct{"tags", mgo.Index{
+		Key: []string{"slug"},
+	}},
+
 }
