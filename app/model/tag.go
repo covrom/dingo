@@ -12,14 +12,14 @@ import (
 
 // A Tag is a keyword associated with a post.
 type Tag struct {
-	Id        int64      `meddler:"id,pk"`
-	Name      string     `meddler:"name"`
-	Slug      string     `meddler:"slug"`
-	Hidden    bool       `meddler:"hidden"`
-	CreatedAt *time.Time `meddler:"created_at"`
-	CreatedBy int64      `meddler:"created_by"`
-	UpdatedAt *time.Time `meddler:"updated_at"`
-	UpdatedBy int64      `meddler:"updated_by"`
+	Id        int64      //`meddler:"id,pk"`
+	Name      string     //`meddler:"name"`
+	Slug      string     //`meddler:"slug"`
+	Hidden    bool       //`meddler:"hidden"`
+	CreatedAt *time.Time //`meddler:"created_at"`
+	CreatedBy int64      //`meddler:"created_by"`
+	UpdatedAt *time.Time //`meddler:"updated_at"`
+	UpdatedBy int64      //`meddler:"updated_by"`
 }
 
 // Url returns the URL of the given slug.
