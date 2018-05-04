@@ -305,6 +305,7 @@ func CommentAddHandler(ctx *golf.Context) {
 }
 
 func CommentUpdateHandler(ctx *golf.Context) {
+	// FIXME:
 	id, _ := strconv.Atoi(ctx.Request.FormValue("id"))
 	c := &model.Comment{Id: int64(id)}
 	err := c.GetCommentById()
@@ -324,6 +325,7 @@ func CommentUpdateHandler(ctx *golf.Context) {
 }
 
 func CommentRemoveHandler(ctx *golf.Context) {
+	// FIXME:
 	id, _ := strconv.Atoi(ctx.Request.FormValue("id"))
 	err := model.DeleteComment(int64(id))
 	if err != nil {
