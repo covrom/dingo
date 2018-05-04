@@ -63,6 +63,9 @@ func (c *Comment) Save() error {
 
 	session := mdb.Copy()
 	defer session.Close()
+	if len(c.Id) == 0 {
+		c.Id = bson.NewObjectId()
+	}
 	_, err := session.DB(DBName).C("comments").UpsertId(c.Id, c)
 	return err
 
