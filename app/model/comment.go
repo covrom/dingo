@@ -17,21 +17,21 @@ type Comments []*Comment
 
 // A Comment defines comment item data.
 type Comment struct {
-	Id        int64      //`meddler:"id,pk"`
-	PostId    int64      //`meddler:"post_id"`
-	Author    string     //`meddler:"author"`
-	Email     string     //`meddler:"author_email"`
-	Avatar    string     //`meddler:"author_avatar"`
-	Website   string     //`meddler:"author_url"`
-	Ip        string     //`meddler:"author_ip"`
-	CreatedAt *time.Time //`meddler:"created_at"`
-	Content   string     //`meddler:"content"`
-	Approved  bool       //`meddler:"approved"`
-	UserAgent string     //`meddler:"agent"`
-	Type      string     //`meddler:"type"`
-	Parent    int64      //`meddler:"parent"`
-	UserId    int64      //`meddler:"user_id"`
-	Children  *Comments  `json:"-"` //`meddler:"-"`
+	Id        bson.ObjectId `json:"_id"`
+	PostId    bson.ObjectId //`meddler:"post_id"`
+	Author    string        //`meddler:"author"`
+	Email     string        //`meddler:"author_email"`
+	Avatar    string        //`meddler:"author_avatar"`
+	Website   string        //`meddler:"author_url"`
+	Ip        string        //`meddler:"author_ip"`
+	CreatedAt *time.Time    //`meddler:"created_at"`
+	Content   string        //`meddler:"content"`
+	Approved  bool          //`meddler:"approved"`
+	UserAgent string        //`meddler:"agent"`
+	Type      string        //`meddler:"type"`
+	Parent    bson.ObjectId //`meddler:"parent"`
+	UserId    bson.ObjectId //`meddler:"user_id"`
+	Children  *Comments     `json:"-"` //`meddler:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
@@ -63,7 +63,7 @@ func (c *Comment) Save() error {
 
 	session := mdb.Copy()
 	defer session.Close()
-	_, err := session.DB(DBName).C("comments").Upsert(bson.M{"Id": c.Id}, c)
+	_, err := session.DB(DBName).C("comments").UpsertId(c.Id, c)
 	return err
 
 	// err := meddler.Save(db, "comments", c)
@@ -91,7 +91,7 @@ func (c *Comment) ToJson() map[string]interface{} {
 // ParentContent returns the parent of a given comment, if it exists. Used for
 // threaded comments.
 func (c *Comment) ParentContent() string {
-	if c.Parent < 1 {
+	if len(c.Parent) == 0 {
 		return ""
 	}
 
@@ -148,7 +148,7 @@ func (c *Comment) GetCommentById() error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	err := session.DB(DBName).C("comments").Find(bson.M{"Id": c.Id}).One(c)
+	err := session.DB(DBName).C("comments").FindId(c.Id).One(c)
 
 	// err := meddler.QueryRow(db, c, stmtGetCommentById, c.Id)
 	return err
@@ -213,7 +213,7 @@ func buildCommentTree(p *Comment, c *Comment, level int) {
 }
 
 // DeleteComment deletes the comment with the given ID from the DB.
-func DeleteComment(id int64) error {
+func DeleteComment(id bson.ObjectId) error {
 	session := mdb.Copy()
 	defer session.Close()
 
@@ -225,7 +225,7 @@ func DeleteComment(id int64) error {
 		}
 	}
 
-	err = session.DB(DBName).C("comments").Remove(bson.M{"Id": id})
+	err = session.DB(DBName).C("comments").RemoveId(id)
 
 	// writeDB, err := db.Begin()
 	// if err != nil {

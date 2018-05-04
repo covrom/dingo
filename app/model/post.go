@@ -54,11 +54,11 @@ type Post struct {
 	MetaTitle       string        `json:"meta_title"`
 	MetaDescription string        `json:"meta_description"`
 	CreatedAt       *time.Time    `json:"created_at"`
-	CreatedBy       int64         `json:"created_by"`
+	CreatedBy       bson.ObjectId `json:"created_by"`
 	UpdatedAt       *time.Time    `json:"updated_at"`
-	UpdatedBy       int64         `json:"updated_by"`
+	UpdatedBy       bson.ObjectId `json:"updated_by"`
 	PublishedAt     *time.Time    `json:"published_at"`
-	PublishedBy     int64         `json:"published_by"`
+	PublishedBy     bson.ObjectId `json:"published_by"`
 	Hits            int64         `json:"-"`
 	Category        string        `json:"-"`
 }

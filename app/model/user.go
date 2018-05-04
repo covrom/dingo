@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo/bson"
 	"github.com/russross/meddler"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -18,25 +19,25 @@ const stmtGetNumberOfUsers = `SELECT COUNT(*) FROM users`
 
 // A User is a user on the site.
 type User struct {
-	Id             int64      `meddler:"id,pk"`
-	Name           string     `meddler:"name"`
-	Slug           string     `meddler:"slug"`
-	HashedPassword string     `meddler:"password"`
-	Email          string     `meddler:"email"`
-	Image          string     `meddler:"image"`    // NULL
-	Cover          string     `meddler:"cover"`    // NULL
-	Bio            string     `meddler:"bio"`      // NULL
-	Website        string     `meddler:"website"`  // NULL
-	Location       string     `meddler:"location"` // NULL
-	Accessibility  string     `meddler:"accessibility"`
-	Status         string     `meddler:"status"`
-	Language       string     `meddler:"language"`
-	Lastlogin      *time.Time `meddler:"last_login"`
-	CreatedAt      *time.Time `meddler:"created_at"`
-	CreatedBy      int        `meddler:"created_by"`
-	UpdatedAt      *time.Time `meddler:"updated_at"`
-	UpdatedBy      int        `meddler:"updated_by"`
-	Role           int        `meddler:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
+	Id             bson.ObjectId `json:"_id"`
+	Name           string        `meddler:"name"`
+	Slug           string        `meddler:"slug"`
+	HashedPassword string        `meddler:"password"`
+	Email          string        `meddler:"email"`
+	Image          string        `meddler:"image"`    // NULL
+	Cover          string        `meddler:"cover"`    // NULL
+	Bio            string        `meddler:"bio"`      // NULL
+	Website        string        `meddler:"website"`  // NULL
+	Location       string        `meddler:"location"` // NULL
+	Accessibility  string        `meddler:"accessibility"`
+	Status         string        `meddler:"status"`
+	Language       string        `meddler:"language"`
+	Lastlogin      *time.Time    `meddler:"last_login"`
+	CreatedAt      *time.Time    `meddler:"created_at"`
+	CreatedBy      int           `meddler:"created_by"`
+	UpdatedAt      *time.Time    `meddler:"updated_at"`
+	UpdatedBy      int           `meddler:"updated_by"`
+	Role           int           `meddler:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
 var ghostUser = &User{Id: 0, Name: "Dingo User", Email: "example@example.com"}
