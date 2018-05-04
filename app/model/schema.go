@@ -17,15 +17,18 @@ var shema_indexes = []shema_struct{
 		Background: true,
 		Sparse:     true,
 	}},
+
 	shema_struct{"comments", mgo.Index{
 		Key: []string{"Parent"},
 	}},
 	shema_struct{"comments", mgo.Index{
 		Key: []string{"PostId", "Parent", "Approved"},
 	}},
+
 	shema_struct{"messages", mgo.Index{
 		Key: []string{"IsRead"},
 	}},
+
 	shema_struct{"posts", mgo.Index{
 		Key: []string{"slug"},
 	}},
@@ -41,6 +44,10 @@ var shema_indexes = []shema_struct{
 	}},
 
 	shema_struct{"tags", mgo.Index{
-		Key: []string{"slug"},
+		Key: []string{"Slug"},
+	}},
+
+	shema_struct{"tokens", mgo.Index{
+		Key: []string{"Value"},
 	}},
 }

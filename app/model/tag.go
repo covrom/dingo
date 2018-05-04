@@ -17,9 +17,9 @@ type Tag struct {
 	Slug      string        //`meddler:"slug"`
 	Hidden    bool          //`meddler:"hidden"`
 	CreatedAt *time.Time    //`meddler:"created_at"`
-	CreatedBy int64         //`meddler:"created_by"`
+	CreatedBy bson.ObjectId //`meddler:"created_by"`
 	UpdatedAt *time.Time    //`meddler:"updated_at"`
-	UpdatedBy int64         //`meddler:"updated_by"`
+	UpdatedBy bson.ObjectId //`meddler:"updated_by"`
 }
 
 // Url returns the URL of the given slug.
@@ -150,7 +150,7 @@ func (tags *Tags) GetTagsByPostId(postId bson.ObjectId) error {
 func (tag *Tag) GetTag() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tags").FindId(tag.Id).All(tag)
+	err := session.DB(DBName).C("tags").FindId(tag.Id).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
 	return err
 }
@@ -159,7 +159,7 @@ func (tag *Tag) GetTag() error {
 func (tag *Tag) GetTagBySlug() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tags").Find(bson.M{"Slug": tag.Slug}).All(tag)
+	err := session.DB(DBName).C("tags").Find(bson.M{"Slug": tag.Slug}).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
 }
@@ -168,7 +168,7 @@ func (tag *Tag) GetTagBySlug() error {
 func (tags *Tags) GetAllTags() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tags").Find().All(tags)
+	err := session.DB(DBName).C("tags").Find(bson.M{}).All(tags)
 	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }
@@ -180,7 +180,7 @@ func DeleteOldTags() error {
 	defer session.Close()
 
 	var ids []bson.ObjectId
-	err := session.DB(DBName).C("posts_tags").Find().Distinct("tag_id", ids)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tag_id", ids)
 	if err != nil {
 		return err
 	}

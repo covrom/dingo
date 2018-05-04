@@ -184,7 +184,7 @@ func (c *Comment) Post() *Post {
 }
 
 // GetCommentsByPostId gets all the comments for the given post ID.
-func (comments *Comments) GetCommentsByPostId(id int64) error {
+func (comments *Comments) GetCommentsByPostId(id bson.ObjectId) error {
 	session := mdb.Copy()
 	defer session.Close()
 

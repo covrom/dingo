@@ -166,7 +166,7 @@ func (p *Post) Save(tags ...*Tag) error {
 	p.UpdatedAt = utils.Now()
 	p.UpdatedBy = p.CreatedBy
 
-	if p.Id == 0 {
+	if len(p.Id) == 0 {
 		// Insert post
 		if err := p.Insert(); err != nil {
 			return err
@@ -176,7 +176,7 @@ func (p *Post) Save(tags ...*Tag) error {
 			return err
 		}
 	}
-	tagIds := make([]int64, 0)
+	tagIds := make([]bson.ObjectId, 0)
 	// Insert tags
 	for _, t := range tags {
 		t.CreatedAt = utils.Now()
@@ -220,7 +220,7 @@ type PostTag struct {
 }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
-func InsertPostTag(postID int64, tagID int64) error {
+func InsertPostTag(postID bson.ObjectId, tagID bson.ObjectId) error {
 	// writeDB, err := db.Begin()
 	// if err != nil {
 	// 	writeDB.Rollback()
@@ -254,7 +254,7 @@ func (p *Post) Update() error {
 
 	session := mdb.Copy()
 	defer session.Close()
-	_, err = session.DB(DBName).C("posts").Upsert(bson.M{"id": p.Id}, p)
+	_, err = session.DB(DBName).C("posts").UpsertId(p.Id, p)
 
 	// err = meddler.Update(db, "posts", p)
 	return err
@@ -282,14 +282,14 @@ func (p *Post) UpdateFromJSON(j []byte) error {
 	return nil
 }
 
-func (p *Post) Publish(by int64) error {
+func (p *Post) Publish(by bson.ObjectId) error {
 	p.PublishedAt = utils.Now()
 	p.PublishedBy = by
 	p.IsPublished = true
 
 	session := mdb.Copy()
 	defer session.Close()
-	_, err := session.DB(DBName).C("posts").Upsert(bson.M{"id": p.Id}, p)
+	_, err := session.DB(DBName).C("posts").UpsertId(p.Id, p)
 
 	// err := meddler.Update(db, "posts", p)
 	return err
@@ -297,7 +297,7 @@ func (p *Post) Publish(by int64) error {
 
 // DeletePostTagsByPostId deletes removes tags associated with the given post
 // from the DB.
-func DeletePostTagsByPostId(post_id int64) error {
+func DeletePostTagsByPostId(post_id bson.ObjectId) error {
 	session := mdb.Copy()
 	defer session.Close()
 	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"post_id": post_id})
@@ -316,10 +316,10 @@ func DeletePostTagsByPostId(post_id int64) error {
 }
 
 // DeletePostById deletes the given Post from the DB.
-func DeletePostById(id int64) error {
+func DeletePostById(id bson.ObjectId) error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("posts").Remove(bson.M{"id": id})
+	err := session.DB(DBName).C("posts").RemoveId(id)
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
@@ -344,8 +344,8 @@ func DeletePostById(id int64) error {
 }
 
 // GetPostById gets the post based on the Post ID.
-func (post *Post) GetPostById(id ...int64) error {
-	var postId int64
+func (post *Post) GetPostById(id ...bson.ObjectId) error {
+	var postId bson.ObjectId
 	if len(id) == 0 {
 		postId = post.Id
 	} else {
@@ -354,7 +354,7 @@ func (post *Post) GetPostById(id ...int64) error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	err := session.DB(DBName).C("posts").Find(bson.M{"id": postId}).One(post)
+	err := session.DB(DBName).C("posts").FindId(postId).One(post)
 	// err := meddler.QueryRow(db, post, stmtGetPostById, postId)
 	return err
 }
@@ -372,7 +372,7 @@ func (p *Post) GetPostBySlug(slug string) error {
 type PostTags []*PostTag
 
 // GetPostsByTag returns a new pager based all the Posts associated with a Tag.
-func (p *Posts) GetPostsByTag(tagId, page, size int64, onlyPublished bool) (*utils.Pager, error) {
+func (p *Posts) GetPostsByTag(tagId bson.ObjectId, page, size int64, onlyPublished bool) (*utils.Pager, error) {
 	var (
 		pager *utils.Pager
 		count int64
@@ -388,12 +388,12 @@ func (p *Posts) GetPostsByTag(tagId, page, size int64, onlyPublished bool) (*uti
 		return nil, err
 	}
 
-	ids := make([]int64, len(*ptags))
+	ids := make([]bson.ObjectId, len(*ptags))
 	if len(*ptags) > 0 {
 		for i, v := range *ptags {
 			ids[i] = v.PostId
 		}
-		cnt, err := session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Count()
+		cnt, err := session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Count()
 		if err != nil {
 			utils.LogOnError(err, "Unable to get posts by tag.", true)
 			return nil, err
@@ -417,9 +417,9 @@ func (p *Posts) GetPostsByTag(tagId, page, size int64, onlyPublished bool) (*uti
 	// var where string
 	if onlyPublished {
 		// where = "published AND"
-		err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}, "published": true}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}, "published": true}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
 	// err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
 	return pager, err
@@ -436,11 +436,11 @@ func (p *Posts) GetAllPostsByTag(tagId bson.ObjectId) error {
 		return err
 	}
 
-	ids := make([]int64, len(*ptags))
+	ids := make([]bson.ObjectId, len(*ptags))
 	for i, v := range *ptags {
 		ids[i] = v.PostId
 	}
-	err = session.DB(DBName).C("posts").Find(bson.M{"id": bson.M{"$in": ids}}).Sort("-published_at").All(p)
+	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-published_at").All(p)
 
 	return err
 }
