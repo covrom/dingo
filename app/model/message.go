@@ -24,11 +24,11 @@ func init() {
 // A Message is a simple bit of info, used to alert the admin on the admin
 // panel about things like new comments, etc.
 type Message struct {
-	Id        int        //`meddler:"id,pk"`
-	Type      string     //`meddler:"type"`
-	Data      string     //`meddler:"data"`
-	IsRead    bool       //`meddler:"is_read"`
-	CreatedAt *time.Time //`meddler:"created_at"`
+	Id        bson.ObjectId `json:"_id"`
+	Type      string        //`meddler:"type"`
+	Data      string        //`meddler:"data"`
+	IsRead    bool          //`meddler:"is_read"`
+	CreatedAt *time.Time    //`meddler:"created_at"`
 }
 
 // Messages is a slice of "Message"s
@@ -93,7 +93,7 @@ func generateCommentMessage(co interface{}) string {
 		panic(err)
 	}
 	var s string
-	if c.Parent < 1 {
+	if len(c.Parent) == 0 {
 		s = "<p>" + c.Author + " commented on post <i>" + string(post.Title) + "</i>: </p><p>"
 		s += utils.Html2Str(c.Content) + "</p>"
 	} else {
