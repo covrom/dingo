@@ -89,11 +89,10 @@ func TestComment(t *testing.T) {
 
 			Convey("Get Comments By Post ID", func() {
 				comments := new(Comments)
-				err := comments.GetCommentsByPostId(string(cc.Id))
+				err := comments.GetCommentsByPostId(cc.PostId)
 				So(err, ShouldBeNil)
 				commentEqualCheck(comments.Get(0), pc)
 				commentEqualCheck(comments.Get(0).Children.Get(0), cc)
-
 			})
 
 			Convey("Validate Comment", func() {

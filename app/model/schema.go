@@ -22,7 +22,7 @@ var shema_indexes = []shema_struct{
 		Key: []string{"parent"},
 	}},
 	shema_struct{"comments", mgo.Index{
-		Key: []string{"post_id", "parent", "approved"},
+		Key: []string{"postid", "parent", "approved"},
 	}},
 
 	shema_struct{"messages", mgo.Index{

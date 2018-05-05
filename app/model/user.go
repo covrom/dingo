@@ -31,11 +31,11 @@ type User struct {
 	Accessibility  string        `json:"accessibility"`
 	Status         string        `json:"status"`
 	Language       string        `json:"language"`
-	Lastlogin      *time.Time    `json:"last_login"`
-	CreatedAt      *time.Time    `json:"created_at"`
-	CreatedBy      string        `json:"created_by"`
-	UpdatedAt      *time.Time    `json:"updated_at"`
-	UpdatedBy      string        `json:"updated_by"`
+	Lastlogin      *time.Time    `json:"lastlogin"`
+	CreatedAt      *time.Time    `json:"createdat"`
+	CreatedBy      string        `json:"createdby"`
+	UpdatedAt      *time.Time    `json:"updatedat"`
+	UpdatedBy      string        `json:"updatedby"`
 	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
@@ -192,8 +192,8 @@ func (u *User) Insert() error {
 }
 
 type RolesUsers struct {
-	RoleId string `json:"role_id"`
-	UserId string `json:"user_id"`
+	RoleId string `json:"roleid"`
+	UserId string `json:"userid"`
 }
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.
@@ -205,7 +205,7 @@ func InsertRoleUser(role_id string, user_id string) error {
 	// }
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("roles_users").Insert(&RolesUsers{RoleId: role_id, UserId: user_id})
+	err := session.DB(DBName).C("rolesusers").Insert(&RolesUsers{RoleId: role_id, UserId: user_id})
 
 	// _, err = writeDB.Exec(stmtInsertRoleUser, nil, role_id, user_id)
 	// if err != nil {
