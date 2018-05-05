@@ -3,8 +3,6 @@ package model
 import (
 	"fmt"
 	"net/http"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -19,7 +17,7 @@ func mockSimpleContext() *golf.Context {
 
 func TestToken(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
+		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
 		Initialize("localhost")
 
 		Convey("Test Token", func() {

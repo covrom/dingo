@@ -44,7 +44,7 @@ func TestComment(t *testing.T) {
 	id1 := bson.NewObjectId()
 	id2 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
-		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405000"))
+		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
 		Initialize("localhost")
 
 		Convey("Test Message", func() {
