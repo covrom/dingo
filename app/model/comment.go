@@ -18,19 +18,19 @@ type Comments []*Comment
 // A Comment defines comment item data.
 type Comment struct {
 	Id        bson.ObjectId `json:"_id"`
-	PostId    string        //`meddler:"post_id"`
-	Author    string        //`meddler:"author"`
-	Email     string        //`meddler:"author_email"`
-	Avatar    string        //`meddler:"author_avatar"`
-	Website   string        //`meddler:"author_url"`
-	Ip        string        //`meddler:"author_ip"`
-	CreatedAt *time.Time    //`meddler:"created_at"`
-	Content   string        //`meddler:"content"`
-	Approved  bool          //`meddler:"approved"`
-	UserAgent string        //`meddler:"agent"`
-	Type      string        //`meddler:"type"`
-	Parent    string        //`meddler:"parent"`
-	UserId    string        //`meddler:"user_id"`
+	PostId    string        `json:"post_id"`
+	Author    string        `json:"author"`
+	Email     string        `json:"author_email"`
+	Avatar    string        `json:"author_avatar"`
+	Website   string        `json:"author_url"`
+	Ip        string        `json:"author_ip"`
+	CreatedAt *time.Time    `json:"created_at"`//`meddler:"created_at"`
+	Content   string        `json:"content"`
+	Approved  bool          `json:"approved"`//`meddler:"approved"`
+	UserAgent string        `json:"agent"`
+	Type      string        `json:"type"`
+	Parent    string        `json:"parent"`
+	UserId    string        `json:"user_id"`
 	Children  *Comments     `json:"-"` //`meddler:"-"`
 }
 
@@ -137,9 +137,9 @@ func (c *Comments) GetCommentList(page, size int64, onlyApproved bool) (*utils.P
 	defer session.Close()
 
 	if onlyApproved {
-		err = session.DB(DBName).C("comments").Find(bson.M{"Approved": true}).Sort("-CreatedAt").Skip(int(pager.Begin)).Limit(int(size)).All(c)
+		err = session.DB(DBName).C("comments").Find(bson.M{"approved": true}).Sort("-created_at").Skip(int(pager.Begin)).Limit(int(size)).All(c)
 	} else {
-		err = session.DB(DBName).C("comments").Find(bson.M{}).Sort("-CreatedAt").Skip(int(pager.Begin)).Limit(int(size)).All(c)
+		err = session.DB(DBName).C("comments").Find(bson.M{}).Sort("-created_at").Skip(int(pager.Begin)).Limit(int(size)).All(c)
 	}
 
 	// err = meddler.QueryAll(db, c, fmt.Sprintf(stmtGetCommentList, where), size, pager.Begin)
@@ -163,7 +163,7 @@ func (c *Comment) getChildComments() (*Comments, error) {
 	defer session.Close()
 
 	comments := new(Comments)
-	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": c.Id, "Approved": true}).All(comments)
+	err := session.DB(DBName).C("comments").Find(bson.M{"parent": c.Id, "approved": true}).All(comments)
 
 	// err := meddler.QueryAll(db, comments, stmtGetCommentsByParentId, c.Id)
 	return comments, err
@@ -189,7 +189,7 @@ func (comments *Comments) GetCommentsByPostId(id string) error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	err := session.DB(DBName).C("comments").Find(bson.M{"PostId": id, "Parent": int64(0), "Approved": true}).All(comments)
+	err := session.DB(DBName).C("comments").Find(bson.M{"post_id": id, "parent": int64(0), "approved": true}).All(comments)
 
 	// err := meddler.QueryAll(db, comments, stmtGetParentCommentsByPostId, id)
 	for _, c := range *comments {
@@ -222,7 +222,7 @@ func DeleteComment(id string) error {
 	defer session.Close()
 
 	childs := new(Comments)
-	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": id}).All(childs)
+	err := session.DB(DBName).C("comments").Find(bson.M{"parent": id}).All(childs)
 	if err == nil {
 		for _, child := range *childs {
 			if len(child.Id) > 0 {

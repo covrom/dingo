@@ -8,34 +8,34 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-const stmtGetUserById = `SELECT * FROM users WHERE id = ?`
-const stmtGetUserBySlug = `SELECT * FROM users WHERE slug = ?`
-const stmtGetUserByName = `SELECT * FROM users WHERE name = ?`
-const stmtGetUserByEmail = `SELECT * FROM users WHERE email = ?`
-const stmtInsertRoleUser = `INSERT INTO roles_users (id, role_id, user_id) VALUES (?, ?, ?)`
-const stmtGetUsersCountByEmail = `SELECT count(*) FROM users where email = ?`
-const stmtGetNumberOfUsers = `SELECT COUNT(*) FROM users`
+// const stmtGetUserById = `SELECT * FROM users WHERE id = ?`
+// const stmtGetUserBySlug = `SELECT * FROM users WHERE slug = ?`
+// const stmtGetUserByName = `SELECT * FROM users WHERE name = ?`
+// const stmtGetUserByEmail = `SELECT * FROM users WHERE email = ?`
+// const stmtInsertRoleUser = `INSERT INTO roles_users (id, role_id, user_id) VALUES (?, ?, ?)`
+// const stmtGetUsersCountByEmail = `SELECT count(*) FROM users where email = ?`
+// const stmtGetNumberOfUsers = `SELECT COUNT(*) FROM users`
 
 // A User is a user on the site.
 type User struct {
 	Id             bson.ObjectId `json:"_id"`
-	Name           string        //`meddler:"name"`
-	Slug           string        //`meddler:"slug"`
-	HashedPassword string        //`meddler:"password"`
-	Email          string        //`meddler:"email"`
-	Image          string        //`meddler:"image"`    // NULL
-	Cover          string        //`meddler:"cover"`    // NULL
-	Bio            string        //`meddler:"bio"`      // NULL
-	Website        string        //`meddler:"website"`  // NULL
-	Location       string        //`meddler:"location"` // NULL
-	Accessibility  string        //`meddler:"accessibility"`
-	Status         string        //`meddler:"status"`
-	Language       string        //`meddler:"language"`
-	Lastlogin      *time.Time    //`meddler:"last_login"`
-	CreatedAt      *time.Time    //`meddler:"created_at"`
-	CreatedBy      string        //`meddler:"created_by"`
-	UpdatedAt      *time.Time    //`meddler:"updated_at"`
-	UpdatedBy      string        //`meddler:"updated_by"`
+	Name           string        `json:"name"`
+	Slug           string        `json:"slug"`
+	HashedPassword string        `json:"password"`
+	Email          string        `json:"email"`
+	Image          string        `json:"image"`    // NULL
+	Cover          string        `json:"cover"`    // NULL
+	Bio            string        `json:"bio"`      // NULL
+	Website        string        `json:"website"`  // NULL
+	Location       string        `json:"location"` // NULL
+	Accessibility  string        `json:"accessibility"`
+	Status         string        `json:"status"`
+	Language       string        `json:"language"`
+	Lastlogin      *time.Time    `json:"last_login"`
+	CreatedAt      *time.Time    `json:"created_at"`
+	CreatedBy      string        `json:"created_by"`
+	UpdatedAt      *time.Time    `json:"updated_at"`
+	UpdatedBy      string        `json:"updated_by"`
 	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
@@ -84,6 +84,9 @@ func (u *User) Update() error {
 	defer session.Close()
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
+	}
+	if len(u.Slug) == 0 {
+		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
 	}
 	_, err := session.DB(DBName).C("users").UpsertId(u.Id, u)
 
@@ -146,7 +149,8 @@ func (u *User) GetUserById() error {
 func (u *User) GetUserBySlug() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("users").Find(bson.M{"Slug": u.Slug}).One(u)
+
+	err := session.DB(DBName).C("users").Find(bson.M{"slug": u.Slug}).One(u)
 	// err := meddler.QueryRow(db, u, stmtGetUserBySlug, u.Slug)
 	return err
 }
@@ -155,7 +159,7 @@ func (u *User) GetUserBySlug() error {
 func (u *User) GetUserByName() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("users").Find(bson.M{"Name": u.Name}).One(u)
+	err := session.DB(DBName).C("users").Find(bson.M{"name": u.Name}).One(u)
 
 	// err := meddler.QueryRow(db, u, stmtGetUserByName, u.Name)
 	return err
@@ -165,7 +169,7 @@ func (u *User) GetUserByName() error {
 func (u *User) GetUserByEmail() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("users").Find(bson.M{"Email": u.Email}).One(u)
+	err := session.DB(DBName).C("users").Find(bson.M{"email": u.Email}).One(u)
 
 	// err := meddler.QueryRow(db, u, stmtGetUserByEmail, u.Email)
 	return err
@@ -178,6 +182,9 @@ func (u *User) Insert() error {
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
+	if len(u.Slug) == 0 {
+		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
+	}
 	_, err := session.DB(DBName).C("users").UpsertId(u.Id, u)
 
 	// err := meddler.Insert(db, "users", u)
@@ -185,8 +192,8 @@ func (u *User) Insert() error {
 }
 
 type RolesUsers struct {
-	RoleId string
-	UserId string
+	RoleId string `json:"role_id"`
+	UserId string `json:"user_id"`
 }
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.
@@ -212,7 +219,7 @@ func InsertRoleUser(role_id string, user_id string) error {
 func (u User) UserEmailExist() bool {
 	session := mdb.Copy()
 	defer session.Close()
-	count, err := session.DB(DBName).C("users").Find(bson.M{"Email": u.Email}).Count()
+	count, err := session.DB(DBName).C("users").Find(bson.M{"email": u.Email}).Count()
 
 	// var count int64
 	// row := db.QueryRow(stmtGetUsersCountByEmail, u.Email)

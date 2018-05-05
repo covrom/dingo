@@ -21,13 +21,13 @@ import (
 //         custom         custom settings
 type Setting struct {
 	// Id        int        `meddler:"id,pk"`
-	Key       string     //`meddler:"key"`
-	Value     string     //`meddler:"value"`
-	Type      string     //`meddler:"type"` // general, content, navigation, custom
-	CreatedAt *time.Time //`meddler:"created_at"`
-	CreatedBy int64      //`meddler:"created_by"`
-	UpdatedAt *time.Time //`meddler:"updated_at"`
-	UpdatedBy int64      //`meddler:"updated_by"`
+	Key       string     `json:"key"`
+	Value     string     `json:"value"`
+	Type      string     `json:"type"` // general, content, navigation, custom
+	CreatedAt *time.Time `json:"created_at"`
+	CreatedBy int64      `json:"created_by"`
+	UpdatedAt *time.Time `json:"updated_at"`
+	UpdatedBy int64      `json:"updated_by"`
 }
 
 // A Navigator represents a link in the site navigation menu.
@@ -67,7 +67,7 @@ func (setting *Setting) GetSetting() error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	err := session.DB(DBName).C("settings").Find(bson.M{"Key": setting.Key}).One(setting)
+	err := session.DB(DBName).C("settings").Find(bson.M{"key": setting.Key}).One(setting)
 
 	return err
 }
@@ -96,7 +96,7 @@ func GetSettingsByType(t string) *Settings {
 	defer session.Close()
 
 	settings := new(Settings)
-	err := session.DB(DBName).C("settings").Find(bson.M{"Type": t}).All(settings)
+	err := session.DB(DBName).C("settings").Find(bson.M{"type": t}).All(settings)
 
 	if err != nil {
 		return nil
@@ -108,7 +108,7 @@ func GetSettingsByType(t string) *Settings {
 func (setting *Setting) Save() error {
 	session := mdb.Copy()
 	defer session.Close()
-	_, err := session.DB(DBName).C("settings").Upsert(bson.M{"Key": setting.Key}, setting)
+	_, err := session.DB(DBName).C("settings").Upsert(bson.M{"key": setting.Key}, setting)
 	return err
 }
 

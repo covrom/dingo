@@ -11,7 +11,7 @@ type shema_struct struct {
 
 var shema_indexes = []shema_struct{
 	shema_struct{"settings", mgo.Index{
-		Key:        []string{"Key"},
+		Key:        []string{"key"},
 		Unique:     true,
 		DropDups:   true,
 		Background: true,
@@ -19,10 +19,10 @@ var shema_indexes = []shema_struct{
 	}},
 
 	shema_struct{"comments", mgo.Index{
-		Key: []string{"Parent"},
+		Key: []string{"parent"},
 	}},
 	shema_struct{"comments", mgo.Index{
-		Key: []string{"PostId", "Parent", "Approved"},
+		Key: []string{"post_id", "parent", "approved"},
 	}},
 
 	shema_struct{"messages", mgo.Index{
@@ -52,14 +52,12 @@ var shema_indexes = []shema_struct{
 	}},
 
 	shema_struct{"users", mgo.Index{
-		Key: []string{"Slug"},
+		Key: []string{"slug"},
 	}},
-
 	shema_struct{"users", mgo.Index{
-		Key: []string{"Name"},
+		Key: []string{"name"},
 	}},
-
 	shema_struct{"users", mgo.Index{
-		Key: []string{"Email"},
+		Key: []string{"email"},
 	}},
 }
