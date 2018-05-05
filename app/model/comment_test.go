@@ -12,7 +12,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func mockComment(id1, id2 string) *Comment {
+func mockComment(id1, id2 bson.ObjectId) *Comment {
 	c := NewComment()
 	c.Author = name
 	c.Email = email
@@ -20,10 +20,10 @@ func mockComment(id1, id2 string) *Comment {
 	c.Content = "comment test"
 	c.Avatar = utils.Gravatar(c.Email, "50")
 	c.Parent = ""
-	c.PostId = id2
+	c.PostId = string(id2)
 	//	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = id1
+	c.UserId = string(id1)
 	c.Approved = true
 	return c
 }
@@ -55,7 +55,7 @@ func TestComment(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			cc := mockComment(id1, id2)
-			cc.Parent = pc.Id
+			cc.Parent = string(pc.Id)
 			cc.Content = "comment test by child"
 			err = cc.Save()
 			So(err, ShouldBeNil)
@@ -91,7 +91,7 @@ func TestComment(t *testing.T) {
 
 			Convey("Get Comments By Post ID", func() {
 				comments := new(Comments)
-				err := comments.GetCommentsByPostId(cc.Id)
+				err := comments.GetCommentsByPostId(string(cc.Id))
 				So(err, ShouldBeNil)
 				commentEqualCheck(comments.Get(0), pc)
 				commentEqualCheck(comments.Get(0).Children.Get(0), cc)
@@ -104,7 +104,7 @@ func TestComment(t *testing.T) {
 			})
 
 			Convey("Delete Comment", func() {
-				err := DeleteComment(cc.Id)
+				err := DeleteComment(string(cc.Id))
 				So(err, ShouldBeNil)
 				result := &Comment{Id: cc.Id}
 				err = result.GetCommentById()

@@ -28,7 +28,7 @@ func TestMessage(t *testing.T) {
 			_ = p.Save()
 
 			c := mockComment(id1, id2)
-			c.PostId = p.Id
+			c.PostId = string(p.Id)
 			_ = c.Save()
 
 			um := mockMessage(c)

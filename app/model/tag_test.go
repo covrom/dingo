@@ -44,7 +44,7 @@ func TestTag(t *testing.T) {
 
 			Convey("Get tags by post ID", func() {
 				tags := new(Tags)
-				err = tags.GetTagsByPostId(p.Id)
+				err = tags.GetTagsByPostId(string(p.Id))
 
 				So(tags, ShouldHaveLength, 2)
 				So(err, ShouldBeNil)

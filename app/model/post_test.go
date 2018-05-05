@@ -70,7 +70,7 @@ func TestPost(t *testing.T) {
 
 					So(err, ShouldBeNil)
 					tags := new(Tags)
-					err = tags.GetTagsByPostId(p.Id)
+					err = tags.GetTagsByPostId(string(p.Id))
 					So(tags, ShouldHaveLength, 1)
 					So(tags.Get(0).Slug, ShouldEqual, "welcome")
 					//					So((*newPost.UpdatedAt).After(*p.UpdatedAt), ShouldBeTrue)
@@ -111,7 +111,7 @@ func TestPost(t *testing.T) {
 			})
 
 			Convey("Delete post by ID", func() {
-				DeletePostById(id1)
+				DeletePostById(string(id1))
 				p := &Post{Id: id1}
 				err := p.GetPostById()
 
@@ -127,7 +127,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get post by Tag", func() {
 				posts := new(Posts)
-				pager, err := posts.GetPostsByTag(id1, 1, 1, false)
+				pager, err := posts.GetPostsByTag(string(id1), 1, 1, false)
 
 				So(posts, ShouldHaveLength, 1)
 				So(pager.Begin, ShouldEqual, 0)
@@ -136,7 +136,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get all posts by Tag", func() {
 				posts := new(Posts)
-				err := posts.GetAllPostsByTag(id1)
+				err := posts.GetAllPostsByTag(string(id1))
 
 				So(posts, ShouldHaveLength, 1)
 				So(err, ShouldBeNil)
