@@ -54,11 +54,11 @@ type Post struct {
 	MetaTitle       string        `json:"meta_title"`
 	MetaDescription string        `json:"meta_description"`
 	CreatedAt       *time.Time    `json:"created_at"`
-	CreatedBy       string `json:"created_by"`
+	CreatedBy       string        `json:"created_by"`
 	UpdatedAt       *time.Time    `json:"updated_at"`
-	UpdatedBy       string `json:"updated_by"`
+	UpdatedBy       string        `json:"updated_by"`
 	PublishedAt     *time.Time    `json:"published_at"`
-	PublishedBy     string `json:"published_by"`
+	PublishedBy     string        `json:"published_by"`
 	Hits            int64         `json:"-"`
 	Category        string        `json:"-"`
 }
@@ -85,6 +85,7 @@ func (p Posts) AppendPosts(posts Posts) {
 // NewPost creates a new Post, with CreatedAt set to the current time.
 func NewPost() *Post {
 	return &Post{
+		Id:        bson.NewObjectId(),
 		CreatedAt: utils.Now(),
 	}
 }

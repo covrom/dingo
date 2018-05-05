@@ -53,6 +53,7 @@ func (c Comments) GetAll() []*Comment {
 // current time.
 func NewComment() *Comment {
 	return &Comment{
+		Id:        bson.NewObjectId(),
 		CreatedAt: utils.Now(),
 	}
 }

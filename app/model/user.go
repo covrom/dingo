@@ -33,9 +33,9 @@ type User struct {
 	Language       string        //`meddler:"language"`
 	Lastlogin      *time.Time    //`meddler:"last_login"`
 	CreatedAt      *time.Time    //`meddler:"created_at"`
-	CreatedBy      string //`meddler:"created_by"`
+	CreatedBy      string        //`meddler:"created_by"`
 	UpdatedAt      *time.Time    //`meddler:"updated_at"`
-	UpdatedBy      string //`meddler:"updated_by"`
+	UpdatedBy      string        //`meddler:"updated_by"`
 	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
@@ -45,6 +45,7 @@ var ghostUser = &User{Id: "", Name: "Blog User", Email: "example@example.com"}
 // and UpdatedAt fields set to the current time.
 func NewUser(email, name string) *User {
 	return &User{
+		Id:        bson.NewObjectId(),
 		Email:     email,
 		Name:      name,
 		CreatedAt: utils.Now(),

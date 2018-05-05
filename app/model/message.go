@@ -47,6 +47,7 @@ func NewMessage(tp string, data interface{}) *Message {
 		return nil
 	}
 	return &Message{
+		Id:        bson.NewObjectId(),
 		Type:      tp,
 		Data:      mData,
 		CreatedAt: utils.Now(),

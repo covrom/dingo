@@ -17,9 +17,9 @@ type Tag struct {
 	Slug      string        //`meddler:"slug"`
 	Hidden    bool          //`meddler:"hidden"`
 	CreatedAt *time.Time    //`meddler:"created_at"`
-	CreatedBy string //`meddler:"created_by"`
+	CreatedBy string        //`meddler:"created_by"`
 	UpdatedAt *time.Time    //`meddler:"updated_at"`
-	UpdatedBy string //`meddler:"updated_by"`
+	UpdatedBy string        //`meddler:"updated_by"`
 }
 
 // Url returns the URL of the given slug.
@@ -48,6 +48,7 @@ func (t Tags) GetAll() []*Tag {
 // NewTag creates a new Tag, with CreatedAt being set to the current time.
 func NewTag(name, slug string) *Tag {
 	return &Tag{
+		Id:        bson.NewObjectId(),
 		Name:      name,
 		Slug:      slug,
 		CreatedAt: utils.Now(),
