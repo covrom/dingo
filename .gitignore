@@ -38,3 +38,5 @@ dingo.rsa.pub
 # Ignore upload directory
 upload/*
 
+cpu.out
+model.test
