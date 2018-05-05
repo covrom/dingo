@@ -7,6 +7,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
+
 	"github.com/covrom/dingo/app/utils"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -20,13 +22,14 @@ func mockPost() *Post {
 	p.IsPage = false
 	p.AllowComment = true
 	p.Category = ""
-	p.CreatedBy = 0
-	p.UpdatedBy = 0
+	p.CreatedBy = ""
+	p.UpdatedBy = ""
 	p.IsPublished = true
 	return p
 }
 
 func TestPost(t *testing.T) {
+	id1 := bson.ObjectId("1")
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
 		Initialize("localhost")
@@ -62,7 +65,7 @@ func TestPost(t *testing.T) {
 
 				Convey("Tags should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = 1
+					newPost.Id = id1
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -82,7 +85,7 @@ func TestPost(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Slug should be updated", func() {
-					p := &Post{Id: 1}
+					p := &Post{Id: id1}
 					err := p.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -99,7 +102,7 @@ func TestPost(t *testing.T) {
 
 				Convey("Title should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = 1
+					newPost.Id = id1
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -108,8 +111,8 @@ func TestPost(t *testing.T) {
 			})
 
 			Convey("Delete post by ID", func() {
-				DeletePostById(1)
-				p := &Post{Id: 1}
+				DeletePostById(id1)
+				p := &Post{Id: id1}
 				err := p.GetPostById()
 
 				So(err, ShouldNotBeNil)
@@ -124,7 +127,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get post by Tag", func() {
 				posts := new(Posts)
-				pager, err := posts.GetPostsByTag(1, 1, 1, false)
+				pager, err := posts.GetPostsByTag(id1, 1, 1, false)
 
 				So(posts, ShouldHaveLength, 1)
 				So(pager.Begin, ShouldEqual, 0)
@@ -133,7 +136,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get all posts by Tag", func() {
 				posts := new(Posts)
-				err := posts.GetAllPostsByTag(1)
+				err := posts.GetAllPostsByTag(id1)
 
 				So(posts, ShouldHaveLength, 1)
 				So(err, ShouldBeNil)
@@ -178,7 +181,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get the welcome post", func() {
 				post := new(Post)
-				post.Id = 1
+				post.Id = id1
 				err := post.GetPostById()
 
 				So(err, ShouldBeNil)

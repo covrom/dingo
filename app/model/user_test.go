@@ -30,8 +30,8 @@ func userEqualCheck(user *User, expected *User) {
 
 func TestUser(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		Initialize(testDB, true)
+		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
+		Initialize("localhost")
 
 		Convey("Test User", func() {
 			user := mockUser()
@@ -109,7 +109,7 @@ func TestUser(t *testing.T) {
 
 		})
 		Reset(func() {
-			os.Remove(testDB)
+			DropDatabase()
 		})
 	})
 }

@@ -50,4 +50,16 @@ var shema_indexes = []shema_struct{
 	shema_struct{"tokens", mgo.Index{
 		Key: []string{"Value"},
 	}},
+
+	shema_struct{"users", mgo.Index{
+		Key: []string{"Slug"},
+	}},
+
+	shema_struct{"users", mgo.Index{
+		Key: []string{"Name"},
+	}},
+
+	shema_struct{"users", mgo.Index{
+		Key: []string{"Email"},
+	}},
 }

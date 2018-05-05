@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo/bson"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -18,11 +19,11 @@ func mockComment() *Comment {
 	c.Website = "http://example.com"
 	c.Content = "comment test"
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	c.Parent = 0
-	c.PostId = 2
+	c.Parent = ""
+	c.PostId = bson.ObjectId("2")
 	//	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = 1
+	c.UserId = bson.ObjectId("1")
 	c.Approved = true
 	return c
 }
