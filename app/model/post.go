@@ -54,11 +54,11 @@ type Post struct {
 	MetaTitle       string        `json:"meta_title"`
 	MetaDescription string        `json:"meta_description"`
 	CreatedAt       *time.Time    `json:"created_at"`
-	CreatedBy       bson.ObjectId `json:"created_by"`
+	CreatedBy       string `json:"created_by"`
 	UpdatedAt       *time.Time    `json:"updated_at"`
-	UpdatedBy       bson.ObjectId `json:"updated_by"`
+	UpdatedBy       string `json:"updated_by"`
 	PublishedAt     *time.Time    `json:"published_at"`
-	PublishedBy     bson.ObjectId `json:"published_by"`
+	PublishedBy     string `json:"published_by"`
 	Hits            int64         `json:"-"`
 	Category        string        `json:"-"`
 }
@@ -92,7 +92,7 @@ func NewPost() *Post {
 // TagString returns all the tags associated with a post as a single string.
 func (p *Post) TagString() string {
 	tags := new(Tags)
-	_ = tags.GetTagsByPostId(p.Id)
+	_ = tags.GetTagsByPostId(string(p.Id))
 	var tagString string
 	for i := 0; i < tags.Len(); i++ {
 		if i != tags.Len()-1 {
@@ -112,7 +112,7 @@ func (p *Post) Url() string {
 // Tags returns a slice of every tag associated with the post.
 func (p *Post) Tags() []*Tag {
 	tags := new(Tags)
-	err := tags.GetTagsByPostId(p.Id)
+	err := tags.GetTagsByPostId(string(p.Id))
 	if err != nil {
 		return nil
 	}
@@ -121,7 +121,7 @@ func (p *Post) Tags() []*Tag {
 
 // Author returns the User who authored the post.
 func (p *Post) Author() *User {
-	user := &User{Id: p.CreatedBy}
+	user := &User{Id: bson.ObjectId(p.CreatedBy)}
 	err := user.GetUserById()
 	if err != nil {
 		return ghostUser
@@ -132,7 +132,7 @@ func (p *Post) Author() *User {
 // Comments returns all the comments associated with the post.
 func (p *Post) Comments() []*Comment {
 	comments := new(Comments)
-	err := comments.GetCommentsByPostId(p.Id)
+	err := comments.GetCommentsByPostId(string(p.Id))
 	if err != nil {
 		return nil
 	}
@@ -176,23 +176,23 @@ func (p *Post) Save(tags ...*Tag) error {
 			return err
 		}
 	}
-	tagIds := make([]bson.ObjectId, 0)
+	tagIds := make([]string, 0)
 	// Insert tags
 	for _, t := range tags {
 		t.CreatedAt = utils.Now()
 		t.CreatedBy = p.CreatedBy
 		t.Hidden = !p.IsPublished
 		t.Save()
-		tagIds = append(tagIds, t.Id)
+		tagIds = append(tagIds, string(t.Id))
 	}
 	// Delete old post-tag projections
-	err := DeletePostTagsByPostId(p.Id)
+	err := DeletePostTagsByPostId(string(p.Id))
 	// Insert postTags
 	if err != nil {
 		return err
 	}
 	for _, tagId := range tagIds {
-		err := InsertPostTag(p.Id, tagId)
+		err := InsertPostTag(string(p.Id), tagId)
 		if err != nil {
 			return err
 		}
@@ -215,12 +215,12 @@ func (p *Post) Insert() error {
 }
 
 type PostTag struct {
-	PostId bson.ObjectId `json:"post_id"`
-	TagId  bson.ObjectId `json:"tag_id"`
+	PostId string `json:"post_id"`
+	TagId  string `json:"tag_id"`
 }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
-func InsertPostTag(postID bson.ObjectId, tagID bson.ObjectId) error {
+func InsertPostTag(postID string, tagID string) error {
 	// writeDB, err := db.Begin()
 	// if err != nil {
 	// 	writeDB.Rollback()
@@ -282,7 +282,7 @@ func (p *Post) UpdateFromJSON(j []byte) error {
 	return nil
 }
 
-func (p *Post) Publish(by bson.ObjectId) error {
+func (p *Post) Publish(by string) error {
 	p.PublishedAt = utils.Now()
 	p.PublishedBy = by
 	p.IsPublished = true
@@ -297,7 +297,7 @@ func (p *Post) Publish(by bson.ObjectId) error {
 
 // DeletePostTagsByPostId deletes removes tags associated with the given post
 // from the DB.
-func DeletePostTagsByPostId(post_id bson.ObjectId) error {
+func DeletePostTagsByPostId(post_id string) error {
 	session := mdb.Copy()
 	defer session.Close()
 	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"post_id": post_id})
@@ -316,7 +316,7 @@ func DeletePostTagsByPostId(post_id bson.ObjectId) error {
 }
 
 // DeletePostById deletes the given Post from the DB.
-func DeletePostById(id bson.ObjectId) error {
+func DeletePostById(id string) error {
 	session := mdb.Copy()
 	defer session.Close()
 	err := session.DB(DBName).C("posts").RemoveId(id)
@@ -344,10 +344,10 @@ func DeletePostById(id bson.ObjectId) error {
 }
 
 // GetPostById gets the post based on the Post ID.
-func (post *Post) GetPostById(id ...bson.ObjectId) error {
-	var postId bson.ObjectId
+func (post *Post) GetPostById(id ...string) error {
+	var postId string
 	if len(id) == 0 {
-		postId = post.Id
+		postId = string(post.Id)
 	} else {
 		postId = id[0]
 	}
@@ -372,7 +372,7 @@ func (p *Post) GetPostBySlug(slug string) error {
 type PostTags []*PostTag
 
 // GetPostsByTag returns a new pager based all the Posts associated with a Tag.
-func (p *Posts) GetPostsByTag(tagId bson.ObjectId, page, size int64, onlyPublished bool) (*utils.Pager, error) {
+func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool) (*utils.Pager, error) {
 	var (
 		pager *utils.Pager
 		count int64
@@ -388,7 +388,7 @@ func (p *Posts) GetPostsByTag(tagId bson.ObjectId, page, size int64, onlyPublish
 		return nil, err
 	}
 
-	ids := make([]bson.ObjectId, len(*ptags))
+	ids := make([]string, len(*ptags))
 	if len(*ptags) > 0 {
 		for i, v := range *ptags {
 			ids[i] = v.PostId
@@ -426,7 +426,7 @@ func (p *Posts) GetPostsByTag(tagId bson.ObjectId, page, size int64, onlyPublish
 }
 
 // GetAllPostsByTag gets all the Posts with the associated Tag.
-func (p *Posts) GetAllPostsByTag(tagId bson.ObjectId) error {
+func (p *Posts) GetAllPostsByTag(tagId string) error {
 	session := mdb.Copy()
 	defer session.Close()
 
@@ -436,7 +436,7 @@ func (p *Posts) GetAllPostsByTag(tagId bson.ObjectId) error {
 		return err
 	}
 
-	ids := make([]bson.ObjectId, len(*ptags))
+	ids := make([]string, len(*ptags))
 	for i, v := range *ptags {
 		ids[i] = v.PostId
 	}

@@ -11,19 +11,17 @@ import (
 	"os"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
-
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
 // A JWT is a JSON web token, and contains all the values necessary to create
 // and validate tokens.
 type JWT struct {
-	UserRole   int           `json:"user_role"`
-	UserID     bson.ObjectId `json:"user_id"`
-	UserEmail  string        `json:"user_email"`
-	Expiration int64         `json:"expiration"`
-	Token      string        `json:"token"`
+	UserRole   int    `json:"user_role"`
+	UserID     string `json:"user_id"`
+	UserEmail  string `json:"user_email"`
+	Expiration int64  `json:"expiration"`
+	Token      string `json:"token"`
 }
 
 var (
@@ -76,7 +74,7 @@ func NewJWT(user *User) (JWT, error) {
 
 	return JWT{
 		UserRole:   user.Role,
-		UserID:     user.Id,
+		UserID:     string(user.Id),
 		UserEmail:  user.Email,
 		Expiration: exp,
 		Token:      tokenString,
@@ -91,7 +89,7 @@ func NewJWTFromToken(token *jwt.Token) JWT {
 	expiration := token.Claims.(jwt.MapClaims)["exp"].(float64)
 	return JWT{
 		UserRole:   int(userRole),
-		UserID:     bson.ObjectIdHex(userID),
+		UserID:     userID,
 		UserEmail:  userEmail,
 		Expiration: int64(expiration),
 		Token:      token.Raw,

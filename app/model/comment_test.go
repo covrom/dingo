@@ -12,7 +12,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func mockComment() *Comment {
+func mockComment(id1, id2 string) *Comment {
 	c := NewComment()
 	c.Author = name
 	c.Email = email
@@ -20,10 +20,10 @@ func mockComment() *Comment {
 	c.Content = "comment test"
 	c.Avatar = utils.Gravatar(c.Email, "50")
 	c.Parent = ""
-	c.PostId = bson.ObjectId("2")
+	c.PostId = id2
 	//	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = bson.ObjectId("1")
+	c.UserId = id1
 	c.Approved = true
 	return c
 }
@@ -43,16 +43,18 @@ func commentEqualCheck(c *Comment, expected *Comment) {
 }
 
 func TestComment(t *testing.T) {
+	id1 := bson.NewObjectId()
+	id2 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
 		Initialize("localhost")
 
 		Convey("Test Message", func() {
-			pc := mockComment()
+			pc := mockComment(id1, id2)
 			err := pc.Save()
 			So(err, ShouldBeNil)
 
-			cc := mockComment()
+			cc := mockComment(id1, id2)
 			cc.Parent = pc.Id
 			cc.Content = "comment test by child"
 			err = cc.Save()

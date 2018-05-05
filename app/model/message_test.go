@@ -7,6 +7,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/globalsign/mgo/bson"
 	. "github.com/smartystreets/goconvey/convey"
 )
 
@@ -16,6 +17,8 @@ func mockMessage(c *Comment) *Message {
 }
 
 func TestMessage(t *testing.T) {
+	id1 := bson.NewObjectId()
+	id2 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
 		Initialize("localhost")
@@ -24,7 +27,7 @@ func TestMessage(t *testing.T) {
 			p := mockPost()
 			_ = p.Save()
 
-			c := mockComment()
+			c := mockComment(id1, id2)
 			c.PostId = p.Id
 			_ = c.Save()
 

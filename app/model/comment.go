@@ -18,7 +18,7 @@ type Comments []*Comment
 // A Comment defines comment item data.
 type Comment struct {
 	Id        bson.ObjectId `json:"_id"`
-	PostId    bson.ObjectId //`meddler:"post_id"`
+	PostId    string        //`meddler:"post_id"`
 	Author    string        //`meddler:"author"`
 	Email     string        //`meddler:"author_email"`
 	Avatar    string        //`meddler:"author_avatar"`
@@ -29,8 +29,8 @@ type Comment struct {
 	Approved  bool          //`meddler:"approved"`
 	UserAgent string        //`meddler:"agent"`
 	Type      string        //`meddler:"type"`
-	Parent    bson.ObjectId //`meddler:"parent"`
-	UserId    bson.ObjectId //`meddler:"user_id"`
+	Parent    string        //`meddler:"parent"`
+	UserId    string        //`meddler:"user_id"`
 	Children  *Comments     `json:"-"` //`meddler:"-"`
 }
 
@@ -98,7 +98,7 @@ func (c *Comment) ParentContent() string {
 		return ""
 	}
 
-	comment := &Comment{Id: c.Parent}
+	comment := &Comment{Id: bson.ObjectId(c.Parent)}
 	err := comment.GetCommentById()
 	if err != nil {
 		return "> Comment not found."
@@ -171,20 +171,20 @@ func (c *Comment) getChildComments() (*Comments, error) {
 // ParentComment returns the associated parent Comment, if one exists.
 func (c *Comment) ParentComment() (*Comment, error) {
 	parent := NewComment()
-	parent.Id = c.Parent
+	parent.Id = bson.ObjectId(c.Parent)
 	return parent, parent.GetCommentById()
 }
 
 // Post returns the post associated with the commment.
 func (c *Comment) Post() *Post {
 	post := NewPost()
-	post.Id = c.PostId
+	post.Id = bson.ObjectId(c.PostId)
 	post.GetPostById()
 	return post
 }
 
 // GetCommentsByPostId gets all the comments for the given post ID.
-func (comments *Comments) GetCommentsByPostId(id bson.ObjectId) error {
+func (comments *Comments) GetCommentsByPostId(id string) error {
 	session := mdb.Copy()
 	defer session.Close()
 
@@ -216,7 +216,7 @@ func buildCommentTree(p *Comment, c *Comment, level int) {
 }
 
 // DeleteComment deletes the comment with the given ID from the DB.
-func DeleteComment(id bson.ObjectId) error {
+func DeleteComment(id string) error {
 	session := mdb.Copy()
 	defer session.Close()
 
@@ -224,7 +224,9 @@ func DeleteComment(id bson.ObjectId) error {
 	err := session.DB(DBName).C("comments").Find(bson.M{"Parent": id}).All(childs)
 	if err == nil {
 		for _, child := range *childs {
-			DeleteComment(child.Id)
+			if len(child.Id) > 0 {
+				DeleteComment(string(child.Id))
+			}
 		}
 	}
 

@@ -169,7 +169,7 @@ func createWelcomeData() error {
 	c.Website = "http://github.com/covrom/dingo"
 	c.Content = "Welcome to Dingo! This is your first comment."
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	c.PostId = p.Id
+	c.PostId = string(p.Id)
 	c.Parent = ""
 	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"

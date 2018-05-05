@@ -29,7 +29,7 @@ func mockPost() *Post {
 }
 
 func TestPost(t *testing.T) {
-	id1 := bson.ObjectId("1")
+	id1 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
 		Initialize("localhost")

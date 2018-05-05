@@ -17,9 +17,9 @@ type Tag struct {
 	Slug      string        //`meddler:"slug"`
 	Hidden    bool          //`meddler:"hidden"`
 	CreatedAt *time.Time    //`meddler:"created_at"`
-	CreatedBy bson.ObjectId //`meddler:"created_by"`
+	CreatedBy string //`meddler:"created_by"`
 	UpdatedAt *time.Time    //`meddler:"updated_at"`
-	UpdatedBy bson.ObjectId //`meddler:"updated_by"`
+	UpdatedBy string //`meddler:"updated_by"`
 }
 
 // Url returns the URL of the given slug.
@@ -74,7 +74,7 @@ func (t *Tag) Save() error {
 			} else {
 				// oldTag.Hidden is false and t.Hidden is true
 				var posts Posts
-				err := posts.GetAllPostsByTag(oldTag.Id)
+				err := posts.GetAllPostsByTag(string(oldTag.Id))
 				if err != nil {
 					return err
 				}
@@ -131,11 +131,11 @@ func (t *Tag) Update() error {
 }
 
 // GetTagsByPostId finds all the tags with the give PostID
-func (tags *Tags) GetTagsByPostId(postId bson.ObjectId) error {
+func (tags *Tags) GetTagsByPostId(postId string) error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	var ids []bson.ObjectId
+	var ids []string
 	err := session.DB(DBName).C("posts_tags").Find(bson.M{"post_id": postId}).Distinct("tag_id", ids)
 	if err != nil {
 		return err
@@ -179,7 +179,7 @@ func DeleteOldTags() error {
 	session := mdb.Copy()
 	defer session.Close()
 
-	var ids []bson.ObjectId
+	var ids []string
 	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tag_id", ids)
 	if err != nil {
 		return err

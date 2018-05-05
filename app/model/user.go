@@ -33,9 +33,9 @@ type User struct {
 	Language       string        //`meddler:"language"`
 	Lastlogin      *time.Time    //`meddler:"last_login"`
 	CreatedAt      *time.Time    //`meddler:"created_at"`
-	CreatedBy      bson.ObjectId //`meddler:"created_by"`
+	CreatedBy      string //`meddler:"created_by"`
 	UpdatedAt      *time.Time    //`meddler:"updated_at"`
-	UpdatedBy      bson.ObjectId //`meddler:"updated_by"`
+	UpdatedBy      string //`meddler:"updated_by"`
 	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
@@ -184,12 +184,12 @@ func (u *User) Insert() error {
 }
 
 type RolesUsers struct {
-	RoleId bson.ObjectId
-	UserId bson.ObjectId
+	RoleId string
+	UserId string
 }
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.
-func InsertRoleUser(role_id bson.ObjectId, user_id bson.ObjectId) error {
+func InsertRoleUser(role_id string, user_id string) error {
 	// writeDB, err := db.Begin()
 	// if err != nil {
 	// 	writeDB.Rollback()

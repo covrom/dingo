@@ -17,7 +17,7 @@ const stmtGetTokenByValue = `SELECT * FROM tokens WHERE value = ?`
 type Token struct {
 	Id        bson.ObjectId `json:"_id"`
 	Value     string        //`meddler:"value"`
-	UserId    bson.ObjectId //`meddler:"user_id"`
+	UserId    string        //`meddler:"user_id"`
 	CreatedAt *time.Time    //`meddler:"created_at"`
 	ExpiredAt *time.Time    //`meddler:"expired_at"`
 }
@@ -26,7 +26,7 @@ type Token struct {
 // time in seconds until expiry.
 func NewToken(u *User, ctx *golf.Context, expire int64) *Token {
 	t := new(Token)
-	t.UserId = u.Id
+	t.UserId = string(u.Id)
 	t.CreatedAt = utils.Now()
 	expiredAt := t.CreatedAt.Add(time.Duration(expire) * time.Second)
 	t.ExpiredAt = &expiredAt
@@ -72,7 +72,7 @@ func (t *Token) GetTokenByValue() error {
 
 // IsValid checks whether or not the token is valid.
 func (t *Token) IsValid() bool {
-	u := &User{Id: t.UserId}
+	u := &User{Id: bson.ObjectId(t.UserId)}
 	err := u.GetUserById()
 	if err != nil {
 		return false
