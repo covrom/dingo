@@ -64,10 +64,10 @@ func SetNavigators(labels, urls []string) error {
 
 // GetSetting checks if a setting exists in the DB.
 func (setting *Setting) GetSetting() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("settings").Find(bson.M{"key": setting.Key}).One(setting)
+	err := setSession.Clone().DB(DBName).C("settings").Find(bson.M{"key": setting.Key}).One(setting)
 
 	return err
 }
@@ -92,11 +92,11 @@ type Settings []*Setting
 // GetSettingsByType returns all settings of the given type, where the setting
 // key can be one of "general", "content", "navigation", or "custom".
 func GetSettingsByType(t string) *Settings {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	settings := new(Settings)
-	err := session.DB(DBName).C("settings").Find(bson.M{"type": t}).All(settings)
+	err := setSession.Clone().DB(DBName).C("settings").Find(bson.M{"type": t}).All(settings)
 
 	if err != nil {
 		return nil
@@ -106,9 +106,9 @@ func GetSettingsByType(t string) *Settings {
 
 // Save saves the setting to the DB.
 func (setting *Setting) Save() error {
-	session := mdb.Copy()
-	defer session.Close()
-	_, err := session.DB(DBName).C("settings").Upsert(bson.M{"key": setting.Key}, setting)
+	// session := mdb.Copy()
+	// defer session.Close()
+	_, err := setSession.Clone().DB(DBName).C("settings").Upsert(bson.M{"key": setting.Key}, setting)
 	return err
 }
 

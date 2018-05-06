@@ -110,13 +110,13 @@ func GenerateTagsFromCommaString(input string) []*Tag {
 
 // Insert inserts the tag into the DB.
 func (t *Tag) Insert() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	if len(t.Id) == 0 {
 		t.Id = bson.NewObjectId()
 	}
-	_, err := session.DB(DBName).C("tags").UpsertId(t.Id, t)
+	_, err := tagSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
 
 	// err := meddler.Insert(db, "tags", t)
 	return err
@@ -124,17 +124,16 @@ func (t *Tag) Insert() error {
 
 // Update updates an existing tag in the DB.
 func (t *Tag) Update() error {
-	session := mdb.Copy()
-	defer session.Close()
-	_, err := session.DB(DBName).C("tags").UpsertId(t.Id, t)
+	// session := mdb.Copy()
+	// defer session.Close()
+	_, err := tagSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
 	// err := meddler.Insert(db, "tags", t)
 	return err
 }
 
 // GetTagsByPostId finds all the tags with the give PostID
 func (tags *Tags) GetTagsByPostId(postId string) error {
-	session := mdb.Copy()
-	defer session.Close()
+	session := tagSession.Clone()
 
 	var ids []string
 	err := session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).Distinct("tagid", ids)
@@ -149,27 +148,27 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 
 //GetTag finds any data for the tag in the DB.
 func (tag *Tag) GetTag() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("tags").FindId(tag.Id).One(tag)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := tagSession.Clone().DB(DBName).C("tags").FindId(tag.Id).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
 	return err
 }
 
 // GetTagBySlug finds the tag based on the Tag's slug value.
 func (tag *Tag) GetTagBySlug() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := tagSession.Clone().DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
 }
 
 // GetAllTags gets all the tags in the DB.
 func (tags *Tags) GetAllTags() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("tags").Find(bson.M{}).All(tags)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := tagSession.Clone().DB(DBName).C("tags").Find(bson.M{}).All(tags)
 	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }
@@ -177,8 +176,7 @@ func (tags *Tags) GetAllTags() error {
 //DeleteOldTags removes any unused tags from the DB.
 func DeleteOldTags() error {
 
-	session := mdb.Copy()
-	defer session.Close()
+	session := tagSession.Clone()
 
 	var ids []string
 	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tagid", ids)

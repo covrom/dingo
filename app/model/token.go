@@ -37,13 +37,13 @@ func NewToken(u *User, ctx *golf.Context, expire int64) *Token {
 // Save saves a token in the DB.
 func (t *Token) Save() error {
 
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	if len(t.Id) == 0 {
 		t.Id = bson.NewObjectId()
 	}
-	_, err := session.DB(DBName).C("tokens").UpsertId(t.Id, t)
+	_, err := userSession.Clone().DB(DBName).C("tokens").UpsertId(t.Id, t)
 
 	// // NOTE: since medder.Save doesn't support UNIQUE field, it is different from INSERT OR REPLACE...
 	// // err := meddler.Save(db, "tokens", t) doens't work...
@@ -62,9 +62,9 @@ func (t *Token) Save() error {
 
 // GetTokenByValue gets a token from the DB based on it's value.
 func (t *Token) GetTokenByValue() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("tokens").Find(bson.M{"value": t.Value}).One(t)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := userSession.Clone().DB(DBName).C("tokens").Find(bson.M{"value": t.Value}).One(t)
 
 	// err := meddler.QueryRow(db, t, stmtGetTokenByValue, t.Value)
 	return err

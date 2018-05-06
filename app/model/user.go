@@ -80,15 +80,15 @@ func (u *User) Update() error {
 	u.UpdatedAt = utils.Now()
 	// TODO:
 	//u.UpdatedBy = ...
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
 	if len(u.Slug) == 0 {
 		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
 	}
-	_, err := session.DB(DBName).C("users").UpsertId(u.Id, u)
+	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
 
 	// err := meddler.Update(db, "users", u)
 	return err
@@ -137,9 +137,9 @@ func (u *User) Avatar() string {
 
 // GetUserById finds the user by ID in the DB.
 func (u *User) GetUserById() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("users").FindId(u.Id).One(u)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := userSession.Clone().DB(DBName).C("users").FindId(u.Id).One(u)
 
 	// err := meddler.QueryRow(db, u, stmtGetUserById, u.Id)
 	return err
@@ -147,19 +147,19 @@ func (u *User) GetUserById() error {
 
 // GetUserBySlug finds the user by their slug in the DB.
 func (u *User) GetUserBySlug() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("users").Find(bson.M{"slug": u.Slug}).One(u)
+	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"slug": u.Slug}).One(u)
 	// err := meddler.QueryRow(db, u, stmtGetUserBySlug, u.Slug)
 	return err
 }
 
 // GetUserByName finds the user by name in the DB.
 func (u *User) GetUserByName() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("users").Find(bson.M{"name": u.Name}).One(u)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"name": u.Name}).One(u)
 
 	// err := meddler.QueryRow(db, u, stmtGetUserByName, u.Name)
 	return err
@@ -167,9 +167,9 @@ func (u *User) GetUserByName() error {
 
 // GetUserByEmail finds the user by email in the DB.
 func (u *User) GetUserByEmail() error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("users").Find(bson.M{"email": u.Email}).One(u)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"email": u.Email}).One(u)
 
 	// err := meddler.QueryRow(db, u, stmtGetUserByEmail, u.Email)
 	return err
@@ -177,23 +177,23 @@ func (u *User) GetUserByEmail() error {
 
 // Insert inserts the user into the DB.
 func (u *User) Insert() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
 	if len(u.Slug) == 0 {
 		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
 	}
-	_, err := session.DB(DBName).C("users").UpsertId(u.Id, u)
+	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
 
 	// err := meddler.Insert(db, "users", u)
 	return err
 }
 
 type RolesUsers struct {
-	RoleId string 
-	UserId string 
+	RoleId string
+	UserId string
 }
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.
@@ -203,9 +203,9 @@ func InsertRoleUser(role_id string, user_id string) error {
 	// 	writeDB.Rollback()
 	// 	return err
 	// }
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("rolesusers").Insert(&RolesUsers{RoleId: role_id, UserId: user_id})
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := userSession.Clone().DB(DBName).C("rolesusers").Insert(&RolesUsers{RoleId: role_id, UserId: user_id})
 
 	// _, err = writeDB.Exec(stmtInsertRoleUser, nil, role_id, user_id)
 	// if err != nil {
@@ -217,9 +217,9 @@ func InsertRoleUser(role_id string, user_id string) error {
 
 // UserEmailExist checks to see if the given User's email exists.
 func (u User) UserEmailExist() bool {
-	session := mdb.Copy()
-	defer session.Close()
-	count, err := session.DB(DBName).C("users").Find(bson.M{"email": u.Email}).Count()
+	// session := mdb.Copy()
+	// defer session.Close()
+	count, err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"email": u.Email}).Count()
 
 	// var count int64
 	// row := db.QueryRow(stmtGetUsersCountByEmail, u.Email)
@@ -232,9 +232,9 @@ func (u User) UserEmailExist() bool {
 
 // GetNumberOfUsers returns the total number of users.
 func GetNumberOfUsers() (int64, error) {
-	session := mdb.Copy()
-	defer session.Close()
-	count, err := session.DB(DBName).C("users").Find(bson.M{}).Count()
+	// session := mdb.Copy()
+	// defer session.Close()
+	count, err := userSession.Clone().DB(DBName).C("users").Find(bson.M{}).Count()
 
 	// var count int64
 	// row := db.QueryRow(stmtGetNumberOfUsers)
