@@ -1,4 +1,4 @@
-**This project is under heavy development and is not ready for use. However, we'd love to have your contribution.**
+**This project is under heavy development and is not ready for use. Now i patch it to use MongoDB driver.**
 
 Dingo is a full-featured blog engine written in Go.
 
