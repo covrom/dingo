@@ -249,7 +249,7 @@ func (p *Post) Update() error {
 
 	currentPost := &Post{Id: p.Id}
 	err := currentPost.GetPostById()
-	if err != nil {
+	if err == mgo.ErrNotFound {
 		return p.Insert()
 	}
 	if p.Slug != currentPost.Slug && !PostChangeSlug(p.Slug) {
@@ -352,10 +352,10 @@ func DeletePostById(id string) error {
 }
 
 // GetPostById gets the post based on the Post ID.
-func (post *Post) GetPostById(id ...string) error {
-	var postId string
+func (post *Post) GetPostById(id ...bson.ObjectId) error {
+	var postId bson.ObjectId
 	if len(id) == 0 {
-		postId = string(post.Id)
+		postId = post.Id
 	} else {
 		postId = id[0]
 	}
