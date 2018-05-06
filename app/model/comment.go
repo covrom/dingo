@@ -17,21 +17,21 @@ type Comments []*Comment
 
 // A Comment defines comment item data.
 type Comment struct {
-	Id        bson.ObjectId `json:"_id"`
-	PostId    string        `json:"postid"`
-	Author    string        `json:"author"`
-	Email     string        `json:"authoremail"`
-	Avatar    string        `json:"authoravatar"`
-	Website   string        `json:"authorurl"`
-	Ip        string        `json:"authorip"`
-	CreatedAt *time.Time    `json:"createdat"` //`meddler:"created_at"`
-	Content   string        `json:"content"`
-	Approved  bool          `json:"approved"` //`meddler:"approved"`
-	UserAgent string        `json:"agent"`
-	Type      string        `json:"type"`
-	Parent    string        `json:"parent"`
-	UserId    string        `json:"userid"`
-	Children  *Comments     `json:"-"` //`meddler:"-"`
+	Id        bson.ObjectId 
+	PostId    string        
+	Author    string        
+	Email     string        
+	Avatar    string        
+	Website   string        
+	Ip        string        
+	CreatedAt *time.Time    
+	Content   string        
+	Approved  bool          
+	UserAgent string        
+	Type      string        
+	Parent    string        
+	UserId    string        
+	Children  *Comments     `json:"-", bson:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
