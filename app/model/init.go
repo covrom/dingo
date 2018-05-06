@@ -6,7 +6,7 @@ import (
 	"github.com/covrom/dingo/app/utils"
 )
 
-var mdb *mgo.Session
+var mdb, comSession, mesSession, postSession, setSession, tagSession, userSession *mgo.Session
 
 const samplePostContent = `
 Welcome to Dingo! This is your first post. You can find it in the [admin panel](/admin/).
@@ -120,16 +120,24 @@ func initConnection(dbPath string) error {
 		return err
 	}
 	mdb.SetMode(mgo.Monotonic, true)
+
+	comSession = mdb.Copy()
+	mesSession = mdb.Copy()
+	postSession = mdb.Copy()
+	setSession = mdb.Copy()
+	tagSession = mdb.Copy()
+	userSession = mdb.Copy()
+
 	return nil
 }
 
 func ensureIndexes() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	// если понадобятся индексы, их нужно инициализировать здесь, см. schema.go
 	for _, idx := range shema_indexes {
-		err := session.DB(DBName).C(idx.name).EnsureIndex(idx.idx)
+		err := mdb.DB(DBName).C(idx.name).EnsureIndex(idx.idx)
 		if err != nil {
 			return err
 		}
