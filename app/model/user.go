@@ -18,25 +18,25 @@ import (
 
 // A User is a user on the site.
 type User struct {
-	Id             bson.ObjectId `json:"_id"`
-	Name           string        `json:"name"`
-	Slug           string        `json:"slug"`
-	HashedPassword string        `json:"password"`
-	Email          string        `json:"email"`
-	Image          string        `json:"image"`    // NULL
-	Cover          string        `json:"cover"`    // NULL
-	Bio            string        `json:"bio"`      // NULL
-	Website        string        `json:"website"`  // NULL
-	Location       string        `json:"location"` // NULL
-	Accessibility  string        `json:"accessibility"`
-	Status         string        `json:"status"`
-	Language       string        `json:"language"`
-	Lastlogin      *time.Time    `json:"lastlogin"`
-	CreatedAt      *time.Time    `json:"createdat"`
-	CreatedBy      string        `json:"createdby"`
-	UpdatedAt      *time.Time    `json:"updatedat"`
-	UpdatedBy      string        `json:"updatedby"`
-	Role           int           `json:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
+	Id             bson.ObjectId `bson:"_id"`
+	Name           string
+	Slug           string
+	HashedPassword string
+	Email          string
+	Image          string // NULL
+	Cover          string // NULL
+	Bio            string // NULL
+	Website        string // NULL
+	Location       string // NULL
+	Accessibility  string
+	Status         string
+	Language       string
+	Lastlogin      *time.Time
+	CreatedAt      *time.Time
+	CreatedBy      string
+	UpdatedAt      *time.Time
+	UpdatedBy      string
+	Role           int `bson:"-"` //1 = Administrator, 2 = Editor, 3 = Author, 4 = Owner
 }
 
 var ghostUser = &User{Id: "", Name: "Blog User", Email: "example@example.com"}
@@ -192,8 +192,8 @@ func (u *User) Insert() error {
 }
 
 type RolesUsers struct {
-	RoleId string `json:"roleid"`
-	UserId string `json:"userid"`
+	RoleId string 
+	UserId string 
 }
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.

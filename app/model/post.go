@@ -28,18 +28,18 @@ import (
 // const stmtDeletePostById = `DELETE FROM posts WHERE id = ?`
 
 var safeOrderByStmt = map[string]string{
-	"created_at":        "created_at",
-	"created_at DESC":   "-created_at",
-	"updated_at":        "updated_at",
-	"updated_at DESC":   "-updated_at",
-	"published_at":      "published_at",
-	"published_at DESC": "-published_at",
+	"created_at":        "createdat",
+	"created_at DESC":   "-createdat",
+	"updated_at":        "updatedat",
+	"updated_at DESC":   "-updatedat",
+	"published_at":      "publishedat",
+	"published_at DESC": "-publishedat",
 }
 
 // A Post contains all the content required to populate a post or page on the
 // blog. It also contains info to help sort and display the post.
 type Post struct {
-	Id              bson.ObjectId `json:"_id"`
+	Id              bson.ObjectId `bson:"_id" json:"id"`
 	Title           string        `json:"title"`
 	Slug            string        `json:"slug"`
 	Markdown        string        `json:"markdown"`
@@ -59,8 +59,8 @@ type Post struct {
 	UpdatedBy       string        `json:"updated_by"`
 	PublishedAt     *time.Time    `json:"published_at"`
 	PublishedBy     string        `json:"published_by"`
-	Hits            int64         `json:"-"`
-	Category        string        `json:"-"`
+	Hits            int64         `json:"-" bson:"-"`
+	Category        string        `json:"-" bson:"-"`
 }
 
 // Posts is a slice of "Post"s
@@ -206,18 +206,18 @@ func (p *Post) Insert() error {
 	if !PostChangeSlug(p.Slug) {
 		p.Slug = generateNewSlug(p.Slug, 1)
 	}
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("posts").Insert(p)
+	err := postSession.Clone().DB(DBName).C("posts").Insert(p)
 
 	// err := meddler.Insert(db, "posts", p)
 	return err
 }
 
 type PostTag struct {
-	PostId string `json:"post_id"`
-	TagId  string `json:"tag_id"`
+	PostId string
+	TagId  string
 }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
@@ -228,10 +228,10 @@ func InsertPostTag(postID string, tagID string) error {
 	// 	return err
 	// }
 	// _, err = writeDB.Exec(stmtInsertPostTag, nil, postID, tagID)
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("posts_tags").Insert(&PostTag{PostId: postID, TagId: tagID})
+	err := postSession.Clone().DB(DBName).C("posts_tags").Insert(&PostTag{PostId: postID, TagId: tagID})
 	if err != nil {
 		// writeDB.Rollback()
 		return err
@@ -253,9 +253,9 @@ func (p *Post) Update() error {
 		p.Slug = generateNewSlug(p.Slug, 1)
 	}
 
-	session := mdb.Copy()
-	defer session.Close()
-	_, err = session.DB(DBName).C("posts").UpsertId(p.Id, p)
+	// session := mdb.Copy()
+	// defer session.Close()
+	_, err = postSession.Clone().DB(DBName).C("posts").UpsertId(p.Id, p)
 
 	// err = meddler.Update(db, "posts", p)
 	return err
@@ -288,9 +288,9 @@ func (p *Post) Publish(by string) error {
 	p.PublishedBy = by
 	p.IsPublished = true
 
-	session := mdb.Copy()
-	defer session.Close()
-	_, err := session.DB(DBName).C("posts").UpsertId(p.Id, p)
+	// session := mdb.Copy()
+	// defer session.Close()
+	_, err := postSession.Clone().DB(DBName).C("posts").UpsertId(p.Id, p)
 
 	// err := meddler.Update(db, "posts", p)
 	return err
@@ -299,9 +299,9 @@ func (p *Post) Publish(by string) error {
 // DeletePostTagsByPostId deletes removes tags associated with the given post
 // from the DB.
 func DeletePostTagsByPostId(post_id string) error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("posts_tags").Remove(bson.M{"post_id": post_id})
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := postSession.Clone().DB(DBName).C("posts_tags").Remove(bson.M{"postid": post_id})
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
@@ -318,9 +318,9 @@ func DeletePostTagsByPostId(post_id string) error {
 
 // DeletePostById deletes the given Post from the DB.
 func DeletePostById(id string) error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("posts").RemoveId(id)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := postSession.Clone().DB(DBName).C("posts").RemoveId(id)
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
@@ -352,19 +352,19 @@ func (post *Post) GetPostById(id ...string) error {
 	} else {
 		postId = id[0]
 	}
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("posts").FindId(postId).One(post)
+	err := postSession.Clone().DB(DBName).C("posts").FindId(postId).One(post)
 	// err := meddler.QueryRow(db, post, stmtGetPostById, postId)
 	return err
 }
 
 // GetPostBySlug gets the post based on the Post Slug.
 func (p *Post) GetPostBySlug(slug string) error {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("posts").Find(bson.M{"slug": slug}).One(p)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"slug": slug}).One(p)
 
 	// err := meddler.QueryRow(db, p, stmtGetPostBySlug, slug)
 	return err
@@ -379,11 +379,12 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 		count int64
 	)
 
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
+	session := postSession.Clone()
 
 	ptags := new(PostTags)
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tag_id": tagId}).All(ptags)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
 	if err != nil {
 		utils.LogOnError(err, "Unable to get posts by tag.", true)
 		return nil, err
@@ -418,9 +419,9 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 	// var where string
 	if onlyPublished {
 		// where = "published AND"
-		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}, "published": true}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}, "published": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}}).Sort("-published_at").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
 	// err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
 	return pager, err
@@ -428,11 +429,12 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 
 // GetAllPostsByTag gets all the Posts with the associated Tag.
 func (p *Posts) GetAllPostsByTag(tagId string) error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
+	session := postSession.Clone()
 
 	ptags := new(PostTags)
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tag_id": tagId}).All(ptags)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
 	if err != nil {
 		return err
 	}
@@ -441,22 +443,23 @@ func (p *Posts) GetAllPostsByTag(tagId string) error {
 	for i, v := range *ptags {
 		ids[i] = v.PostId
 	}
-	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-published_at").All(p)
+	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-publishedat").All(p)
 
 	return err
 }
 
 // GetNumberOfPosts gets the total number of posts in the DB.
 func GetNumberOfPosts(isPage bool, published bool) (int64, error) {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
+	session := postSession.Clone()
 
 	var err error
 	var cnt int
 	if published {
-		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Count()
+		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Count()
 	} else {
-		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Count()
+		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Count()
 	}
 
 	// var count int64
@@ -491,13 +494,14 @@ func (posts *Posts) GetPostList(page, size int64, isPage bool, onlyPublished boo
 
 	safeOrderBy := getSafeOrderByStmt(orderBy)
 
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
+	session := postSession.Clone()
 
 	if onlyPublished {
-		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
 	}
 
 	// var where string
@@ -533,17 +537,18 @@ func (p *Posts) GetAllPostList(isPage bool, onlyPublished bool, orderBy string) 
 	// 	where = where + ` AND published`
 	// }
 
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
+	session := postSession.Clone()
 
 	var err error
 
 	safeOrderBy := getSafeOrderByStmt(orderBy)
 
 	if onlyPublished {
-		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage, "published": true}).Sort(safeOrderBy).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Sort(safeOrderBy).All(p)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"is_page": isPage}).Sort(safeOrderBy).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Sort(safeOrderBy).All(p)
 	}
 
 	// err := meddler.QueryAll(db, p, fmt.Sprintf(stmtGetAllPostList, where, safeOrderBy))
@@ -582,26 +587,26 @@ func getSafeOrderByStmt(orderBy string) string {
 	if stmt, ok := safeOrderByStmt[orderBy]; ok {
 		return stmt
 	}
-	return "-published_at"
+	return "-publishedat"
 }
 
 func GetPublishedPosts(offset, limit int) (Posts, error) {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	var posts Posts
-	err := session.DB(DBName).C("posts").Find(bson.M{"published": true}).Skip(offset).Limit(limit).All(&posts)
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"published": true}).Skip(offset).Limit(limit).All(&posts)
 
 	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 1, offset, limit)
 	return posts, err
 }
 
 func GetUnpublishedPosts(offset, limit int) (Posts, error) {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
 	var posts Posts
-	err := session.DB(DBName).C("posts").Find(bson.M{"published": false}).Skip(offset).Limit(limit).All(&posts)
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"published": false}).Skip(offset).Limit(limit).All(&posts)
 	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 0, offset, limit)
 	return posts, err
 }

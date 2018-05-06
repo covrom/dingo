@@ -12,14 +12,14 @@ import (
 
 // A Tag is a keyword associated with a post.
 type Tag struct {
-	Id        bson.ObjectId `json:"_id"` //`meddler:"id,pk"`
-	Name      string        //`meddler:"name"`
-	Slug      string        //`meddler:"slug"`
-	Hidden    bool          //`meddler:"hidden"`
-	CreatedAt *time.Time    //`meddler:"created_at"`
-	CreatedBy string        //`meddler:"created_by"`
-	UpdatedAt *time.Time    //`meddler:"updated_at"`
-	UpdatedBy string        //`meddler:"updated_by"`
+	Id        bson.ObjectId `bson:"_id"`
+	Name      string
+	Slug      string
+	Hidden    bool
+	CreatedAt *time.Time
+	CreatedBy string
+	UpdatedAt *time.Time
+	UpdatedBy string
 }
 
 // Url returns the URL of the given slug.
@@ -137,7 +137,7 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 	defer session.Close()
 
 	var ids []string
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"post_id": postId}).Distinct("tag_id", ids)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).Distinct("tagid", ids)
 	if err != nil {
 		return err
 	}
@@ -160,7 +160,7 @@ func (tag *Tag) GetTag() error {
 func (tag *Tag) GetTagBySlug() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tags").Find(bson.M{"Slug": tag.Slug}).One(tag)
+	err := session.DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
 }
@@ -181,7 +181,7 @@ func DeleteOldTags() error {
 	defer session.Close()
 
 	var ids []string
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tag_id", ids)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tagid", ids)
 	if err != nil {
 		return err
 	}

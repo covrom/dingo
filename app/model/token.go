@@ -10,16 +10,16 @@ import (
 	"github.com/dinever/golf"
 )
 
-const stmtSave = `INSERT OR REPLACE INTO tokens (id,value, user_id, created_at, expired_at) VALUES (?,?, ?, ?, ?)`
-const stmtGetTokenByValue = `SELECT * FROM tokens WHERE value = ?`
+// const stmtSave = `INSERT OR REPLACE INTO tokens (id,value, user_id, created_at, expired_at) VALUES (?,?, ?, ?, ?)`
+// const stmtGetTokenByValue = `SELECT * FROM tokens WHERE value = ?`
 
 // A Token is used to associate a user with a session.
 type Token struct {
-	Id        bson.ObjectId `json:"_id"`
-	Value     string        //`meddler:"value"`
-	UserId    string        //`meddler:"user_id"`
-	CreatedAt *time.Time    //`meddler:"created_at"`
-	ExpiredAt *time.Time    //`meddler:"expired_at"`
+	Id        bson.ObjectId `bson:"_id"`
+	Value     string
+	UserId    string
+	CreatedAt *time.Time
+	ExpiredAt *time.Time
 }
 
 // NewToken creates a new token from the given user. Expire is the amount of
@@ -64,7 +64,7 @@ func (t *Token) Save() error {
 func (t *Token) GetTokenByValue() error {
 	session := mdb.Copy()
 	defer session.Close()
-	err := session.DB(DBName).C("tokens").Find(bson.M{"Value": t.Value}).One(t)
+	err := session.DB(DBName).C("tokens").Find(bson.M{"value": t.Value}).One(t)
 
 	// err := meddler.QueryRow(db, t, stmtGetTokenByValue, t.Value)
 	return err

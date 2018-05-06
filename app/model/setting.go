@@ -21,13 +21,13 @@ import (
 //         custom         custom settings
 type Setting struct {
 	// Id        int        `meddler:"id,pk"`
-	Key       string     `json:"key"`
-	Value     string     `json:"value"`
-	Type      string     `json:"type"` // general, content, navigation, custom
-	CreatedAt *time.Time `json:"created_at"`
-	CreatedBy int64      `json:"created_by"`
-	UpdatedAt *time.Time `json:"updated_at"`
-	UpdatedBy int64      `json:"updated_by"`
+	Key       string
+	Value     string
+	Type      string // general, content, navigation, custom
+	CreatedAt *time.Time
+	CreatedBy int64
+	UpdatedAt *time.Time
+	UpdatedBy int64
 }
 
 // A Navigator represents a link in the site navigation menu.

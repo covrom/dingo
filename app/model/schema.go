@@ -26,29 +26,29 @@ var shema_indexes = []shema_struct{
 	}},
 
 	shema_struct{"messages", mgo.Index{
-		Key: []string{"IsRead"},
+		Key: []string{"isread"},
 	}},
 
 	shema_struct{"posts", mgo.Index{
 		Key: []string{"slug"},
 	}},
 	shema_struct{"posts", mgo.Index{
-		Key: []string{"_id", "is_page", "published"},
+		Key: []string{"_id", "ispage", "published"},
 	}},
 
 	shema_struct{"posts_tags", mgo.Index{
-		Key: []string{"post_id"},
+		Key: []string{"postid"},
 	}},
 	shema_struct{"posts_tags", mgo.Index{
-		Key: []string{"tag_id"},
+		Key: []string{"tagid"},
 	}},
 
 	shema_struct{"tags", mgo.Index{
-		Key: []string{"Slug"},
+		Key: []string{"slug"},
 	}},
 
 	shema_struct{"tokens", mgo.Index{
-		Key: []string{"Value"},
+		Key: []string{"value"},
 	}},
 
 	shema_struct{"users", mgo.Index{

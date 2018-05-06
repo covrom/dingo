@@ -9,7 +9,7 @@ import (
 	"github.com/globalsign/mgo/bson"
 )
 
-const stmtGetUnreadMessages = `SELECT * FROM messages WHERE is_read = 0 ORDER BY created_at DESC LIMIT 10 OFFSET 0`
+// const stmtGetUnreadMessages = `SELECT * FROM messages WHERE is_read = 0 ORDER BY created_at DESC LIMIT 10 OFFSET 0`
 
 var (
 	messageGenerator map[string]func(v interface{}) string
@@ -24,7 +24,7 @@ func init() {
 // A Message is a simple bit of info, used to alert the admin on the admin
 // panel about things like new comments, etc.
 type Message struct {
-	Id        bson.ObjectId `json:"_id"`
+	Id        bson.ObjectId `bson:"_id"`
 	Type      string        //`meddler:"type"`
 	Data      string        //`meddler:"data"`
 	IsRead    bool          //`meddler:"is_read"`
@@ -57,10 +57,10 @@ func NewMessage(tp string, data interface{}) *Message {
 
 // Insert saves a message to the DB.
 func (m *Message) Insert() error {
-	session := mdb.Copy()
-	defer session.Close()
+	// session := mdb.Copy()
+	// defer session.Close()
 
-	err := session.DB(DBName).C("messages").Insert(m)
+	err := mesSession.Clone().DB(DBName).C("messages").Insert(m)
 	// err := meddler.Insert(db, "messages", m)
 	return err
 }
@@ -72,9 +72,9 @@ func SetMessageGenerator(name string, fn func(v interface{}) string) {
 
 // GetUnreadMessages gets all unread messages from the DB.
 func (m *Messages) GetUnreadMessages() {
-	session := mdb.Copy()
-	defer session.Close()
-	err := session.DB(DBName).C("messages").Find(bson.M{"IsRead": false}).Sort("-CreatedAt").Limit(10).All(m)
+	// session := mdb.Copy()
+	// defer session.Close()
+	err := mesSession.Clone().DB(DBName).C("messages").Find(bson.M{"isread": false}).Sort("-createdat").Limit(10).All(m)
 
 	// err := meddler.QueryAll(db, m, stmtGetUnreadMessages)
 	if err != nil {

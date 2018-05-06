@@ -31,7 +31,7 @@ type Comment struct {
 	Type      string        
 	Parent    string        
 	UserId    string        
-	Children  *Comments     `json:"-", bson:"-"`
+	Children  *Comments     `json:"-" bson:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
