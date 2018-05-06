@@ -8,6 +8,7 @@ import (
 	"fmt"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 	// "github.com/russross/meddler"
 )
@@ -17,21 +18,21 @@ type Comments []*Comment
 
 // A Comment defines comment item data.
 type Comment struct {
-	Id        bson.ObjectId 
-	PostId    string        
-	Author    string        
-	Email     string        
-	Avatar    string        
-	Website   string        
-	Ip        string        
-	CreatedAt *time.Time    
-	Content   string        
-	Approved  bool          
-	UserAgent string        
-	Type      string        
-	Parent    string        
-	UserId    string        
-	Children  *Comments     `json:"-" bson:"-"`
+	Id        bson.ObjectId
+	PostId    string
+	Author    string
+	Email     string
+	Avatar    string
+	Website   string
+	Ip        string
+	CreatedAt *time.Time
+	Content   string
+	Approved  bool
+	UserAgent string
+	Type      string
+	Parent    string
+	UserId    string
+	Children  *Comments `json:"-" bson:"-"`
 }
 
 // Len returns the number of "Comment"s in a "Comments".
@@ -218,7 +219,7 @@ func buildCommentTree(p *Comment, c *Comment, level int) {
 func DeleteComment(id string) error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	session:=comSession.Clone()
+	session := comSession.Clone()
 
 	childs := new(Comments)
 	err := session.DB(DBName).C("comments").Find(bson.M{"parent": id}).All(childs)
@@ -231,6 +232,9 @@ func DeleteComment(id string) error {
 	}
 
 	err = session.DB(DBName).C("comments").RemoveId(bson.ObjectId(id))
+	if err == mgo.ErrNotFound {
+		err = nil
+	}
 
 	// writeDB, err := db.Begin()
 	// if err != nil {

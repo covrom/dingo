@@ -1,12 +1,12 @@
 package model
 
 import (
-	"database/sql"
 	"log"
 	"strings"
 	"time"
 
 	"github.com/covrom/dingo/app/utils"
+	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 )
 
@@ -59,7 +59,8 @@ func NewTag(name, slug string) *Tag {
 func (t *Tag) Save() error {
 	oldTag := &Tag{Slug: t.Slug}
 	err := oldTag.GetTagBySlug()
-	if err != nil && err == sql.ErrNoRows {
+	if err != nil && err == mgo.ErrNotFound {
+		// fmt.Printf("TAG %v INSERTED!!!", *t)
 		if err := t.Insert(); err != nil {
 			log.Printf("[Error] Can not insert tag: %v", err.Error())
 			return err
@@ -135,12 +136,28 @@ func (t *Tag) Update() error {
 func (tags *Tags) GetTagsByPostId(postId string) error {
 	session := tagSession.Clone()
 
+	// ptags := new(PostTags)
+	// _ = session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).All(ptags)
+
 	var ids []string
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).Distinct("tagid", ids)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).Distinct("tagid", &ids)
+
+	// fmt.Printf("arrays %#v %v", ptags, ids)
+
 	if err != nil {
 		return err
 	}
-	err = session.DB(DBName).C("tags").FindId(bson.M{"$in": ids}).All(tags)
+
+	idsbson := make([]bson.ObjectId, len(ids))
+	for i, v := range ids {
+		idsbson[i] = bson.ObjectId(v)
+	}
+
+	// fmt.Printf("%#v\n", idsbson)
+
+	err = session.DB(DBName).C("tags").FindId(bson.M{"$in": idsbson}).All(tags)
+
+	// fmt.Printf("%#v %v\n", tags, err)
 
 	// err := meddler.QueryAll(db, tags, stmtGetTagsByPostId, postId)
 	return err
@@ -179,11 +196,30 @@ func DeleteOldTags() error {
 	session := tagSession.Clone()
 
 	var ids []string
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tagid", ids)
+	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tagid", &ids)
 	if err != nil {
 		return err
 	}
-	err = session.DB(DBName).C("tags").RemoveId(bson.M{"$nin": ids})
+
+	idsbson := make([]bson.ObjectId, len(ids))
+	for i, v := range ids {
+		idsbson[i] = bson.ObjectId(v)
+	}
+
+	// fmt.Printf("%#v\n", ids)
+
+	if len(idsbson) > 0 {
+		err = session.DB(DBName).C("tags").RemoveId(bson.M{"$nin": idsbson})
+		if err == mgo.ErrNotFound {
+			err = nil
+		}
+	} else {
+		_, err = session.DB(DBName).C("tags").RemoveAll(bson.M{})
+		if err == mgo.ErrNotFound {
+			err = nil
+		}
+	}
+
 	// WriteDB, err := db.Begin()
 	// if err != nil {
 	// 	WriteDB.Rollback()

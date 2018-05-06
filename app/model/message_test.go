@@ -29,6 +29,8 @@ func TestMessage(t *testing.T) {
 			c.PostId = string(p.Id)
 			_ = c.Save()
 
+			t.Logf("%s %s\n", string(p.Id), c.PostId)
+
 			um := mockMessage(c)
 
 			err := um.Insert()

@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/globalsign/mgo"
+
 	"net/http"
 
 	"github.com/covrom/dingo/app/utils"
@@ -94,6 +96,7 @@ func NewPost() *Post {
 func (p *Post) TagString() string {
 	tags := new(Tags)
 	_ = tags.GetTagsByPostId(string(p.Id))
+	// fmt.Printf("%#v\n", tags)
 	var tagString string
 	for i := 0; i < tags.Len(); i++ {
 		if i != tags.Len()-1 {
@@ -177,14 +180,14 @@ func (p *Post) Save(tags ...*Tag) error {
 			return err
 		}
 	}
-	tagIds := make([]string, 0)
+	tagIds := make([]bson.ObjectId, 0)
 	// Insert tags
 	for _, t := range tags {
 		t.CreatedAt = utils.Now()
 		t.CreatedBy = p.CreatedBy
 		t.Hidden = !p.IsPublished
 		t.Save()
-		tagIds = append(tagIds, string(t.Id))
+		tagIds = append(tagIds, t.Id)
 	}
 	// Delete old post-tag projections
 	err := DeletePostTagsByPostId(string(p.Id))
@@ -193,7 +196,7 @@ func (p *Post) Save(tags ...*Tag) error {
 		return err
 	}
 	for _, tagId := range tagIds {
-		err := InsertPostTag(string(p.Id), tagId)
+		err := InsertPostTag(string(p.Id), string(tagId))
 		if err != nil {
 			return err
 		}
@@ -247,7 +250,7 @@ func (p *Post) Update() error {
 	currentPost := &Post{Id: p.Id}
 	err := currentPost.GetPostById()
 	if err != nil {
-		return err
+		return p.Insert()
 	}
 	if p.Slug != currentPost.Slug && !PostChangeSlug(p.Slug) {
 		p.Slug = generateNewSlug(p.Slug, 1)
@@ -302,6 +305,10 @@ func DeletePostTagsByPostId(post_id string) error {
 	// session := mdb.Copy()
 	// defer session.Close()
 	err := postSession.Clone().DB(DBName).C("posts_tags").Remove(bson.M{"postid": post_id})
+
+	if err == mgo.ErrNotFound {
+		err = nil
+	}
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
@@ -390,10 +397,10 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 		return nil, err
 	}
 
-	ids := make([]string, len(*ptags))
+	ids := make([]bson.ObjectId, len(*ptags))
 	if len(*ptags) > 0 {
 		for i, v := range *ptags {
-			ids[i] = v.PostId
+			ids[i] = bson.ObjectId(v.PostId)
 		}
 		cnt, err := session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Count()
 		if err != nil {
@@ -439,9 +446,9 @@ func (p *Posts) GetAllPostsByTag(tagId string) error {
 		return err
 	}
 
-	ids := make([]string, len(*ptags))
+	ids := make([]bson.ObjectId, len(*ptags))
 	for i, v := range *ptags {
-		ids[i] = v.PostId
+		ids[i] = bson.ObjectId(v.PostId)
 	}
 	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-publishedat").All(p)
 
