@@ -59,7 +59,7 @@ func TestPost(t *testing.T) {
 				Convey("Unused tag should be removed", func() {
 					tag := &Tag{Slug: "dingo"}
 					err = tag.GetTagBySlug()
-					fmt.Printf("%#v\n", tag)
+					// fmt.Printf("%#v\n", tag)
 					So(err, ShouldNotBeNil)
 				})
 
