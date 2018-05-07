@@ -50,18 +50,19 @@ func TestPost(t *testing.T) {
 
 			So(p.PublishedAt, ShouldNotBeNil)
 
+			updateTags := GenerateTagsFromCommaString("Welcome")
+
 			Convey("Update post tag", func() {
-				updateTags := GenerateTagsFromCommaString("Welcome")
 				err = p.Save(updateTags...)
 
 				So(err, ShouldBeNil)
 
-				Convey("Unused tag should be removed", func() {
-					tag := &Tag{Slug: "dingo"}
-					err = tag.GetTagBySlug()
-					// fmt.Printf("%#v\n", tag)
-					So(err, ShouldNotBeNil)
-				})
+				// Convey("Unused tag should be removed", func() {
+				// 	tag := &Tag{Slug: "dingo"}
+				// 	err = tag.GetTagBySlug()
+				// 	// fmt.Printf("%#v\n", tag)
+				// 	So(err, ShouldNotBeNil)
+				// })
 
 				Convey("Tags should be updated", func() {
 					newPost := new(Post)
@@ -127,7 +128,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get post by Tag", func() {
 				posts := new(Posts)
-				pager, err := posts.GetPostsByTag(id1.Hex(), 1, 1, false)
+				pager, err := posts.GetPostsByTag(updateTags[0], 1, 1, false)
 
 				So(posts, ShouldHaveLength, 1)
 				So(pager.Begin, ShouldEqual, 0)
@@ -136,7 +137,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get all posts by Tag", func() {
 				posts := new(Posts)
-				err := posts.GetAllPostsByTag(id1.Hex())
+				err := posts.GetAllPostsByTag(updateTags[0])
 
 				So(posts, ShouldHaveLength, 1)
 				So(err, ShouldBeNil)
