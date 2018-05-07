@@ -191,16 +191,28 @@ func (p *Post) Save(tags ...*Tag) error {
 	}
 	// Delete old post-tag projections
 	err := DeletePostTagsByPostId(p.Id.Hex())
+
+	ids := new(PostTags)
+	_ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
+	fmt.Printf("%#v\n", ids)
+
 	// Insert postTags
 	if err != nil {
 		return err
 	}
+	// fmt.Printf("%#v\n", tagIds)
 	for _, tagId := range tagIds {
 		err := InsertPostTag(p.Id.Hex(), tagId.Hex())
 		if err != nil {
 			return err
 		}
 	}
+
+	ids = new(PostTags)
+	_ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
+	fmt.Printf("%#v\n", ids)
+
+
 	return DeleteOldTags()
 }
 
@@ -304,18 +316,9 @@ func (p *Post) Publish(by string) error {
 func DeletePostTagsByPostId(post_id string) error {
 	// session := mdb.Copy()
 	// defer session.Close()
-
-	// tags:=new(Tags)
-	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{"postid": post_id}).All(tags)
-	// fmt.Printf("%#v\n",tags)
-
-	_,err := postSession.Clone().DB(DBName).C("posts_tags").RemoveAll(bson.M{"postid": post_id})
-
-	// tags=new(Tags)
-	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{"postid": post_id}).All(tags)
-	// fmt.Printf("%#v\n",tags)
-
-
+	
+	_, err := postSession.Clone().DB(DBName).C("posts_tags").RemoveAll(bson.M{"postid": post_id})
+	
 	if err == mgo.ErrNotFound {
 		err = nil
 	}
