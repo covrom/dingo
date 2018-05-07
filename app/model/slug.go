@@ -4,6 +4,8 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+
+	"github.com/globalsign/mgo"
 )
 
 // GenerateSlug generates a URL-friendly slug. The table is one of "posts",
@@ -49,8 +51,8 @@ func generateUniqueSlug(slug string, table string, suffix int) string {
 	}
 	var err error
 	if table == "tags" { // Not needed at the moment. Tags with the same name should have the same slug.
-		tag := &Tag{Slug: slugToCheck}
-		err = tag.GetTagBySlug()
+		// tag := &Tag{Slug: slugToCheck}
+		err = mgo.ErrNotFound //tag.GetTagBySlug()
 	} else if table == "posts" {
 		post := new(Post)
 		err = post.GetPostBySlug(slugToCheck)

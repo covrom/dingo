@@ -3,7 +3,6 @@ package model
 import (
 	"strings"
 
-	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
 )
 
@@ -131,7 +130,7 @@ func GenerateTagsFromCommaString(input string) (output Tags) {
 
 // GetTagsByPostId finds all the tags with the give PostID
 func (tags *Tags) GetTagsByPostId(postId string) error {
-	
+
 	err := postSession.Clone().DB(DBName).C("posts").FindId(bson.ObjectIdHex(postId)).Select(bson.M{"tags": 1, "_id": 0}).One(tags)
 
 	// session := postSession.Clone()
