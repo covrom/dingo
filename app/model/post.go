@@ -61,6 +61,7 @@ type Post struct {
 	UpdatedBy       string        `json:"updated_by"`
 	PublishedAt     *time.Time    `json:"published_at"`
 	PublishedBy     string        `json:"published_by"`
+	Tags            Tags          `json:"tags"`
 	Hits            int64         `json:"-" bson:"-"`
 	Category        string        `json:"-" bson:"-"`
 }
@@ -114,14 +115,14 @@ func (p *Post) Url() string {
 }
 
 // Tags returns a slice of every tag associated with the post.
-func (p *Post) Tags() []*Tag {
-	tags := new(Tags)
-	err := tags.GetTagsByPostId(p.Id.Hex())
-	if err != nil {
-		return nil
-	}
-	return tags.GetAll()
-}
+// func (p *Post) Tags() []*Tag {
+// 	tags := new(Tags)
+// 	err := tags.GetTagsByPostId(p.Id.Hex())
+// 	if err != nil {
+// 		return nil
+// 	}
+// 	return tags.GetAll()
+// }
 
 // Author returns the User who authored the post.
 func (p *Post) Author() *User {
@@ -155,7 +156,7 @@ func (p *Post) Excerpt() string {
 }
 
 // Save saves a post to the DB, updating any given tags to include the Post ID.
-func (p *Post) Save(tags ...*Tag) error {
+func (p *Post) Save(tags ...Tag) error {
 	p.Slug = strings.TrimLeft(p.Slug, "/")
 	p.Slug = strings.TrimRight(p.Slug, "/")
 	if p.Slug == "" {
@@ -170,6 +171,8 @@ func (p *Post) Save(tags ...*Tag) error {
 	p.UpdatedAt = utils.Now()
 	p.UpdatedBy = p.CreatedBy
 
+	p.Tags = tags
+
 	if len(p.Id) == 0 {
 		// Insert post
 		if err := p.Insert(); err != nil {
@@ -180,40 +183,40 @@ func (p *Post) Save(tags ...*Tag) error {
 			return err
 		}
 	}
-	tagIds := make([]bson.ObjectId, 0)
+	// tagIds := make([]bson.ObjectId, 0)
 	// Insert tags
-	for _, t := range tags {
-		t.CreatedAt = utils.Now()
-		t.CreatedBy = p.CreatedBy
-		t.Hidden = !p.IsPublished
-		t.Save()
-		tagIds = append(tagIds, t.Id)
-	}
+	// for _, t := range tags {
+	// t.CreatedAt = utils.Now()
+	// t.CreatedBy = p.CreatedBy
+	// t.Hidden = !p.IsPublished
+	// t.Save()
+	// tagIds = append(tagIds, t.Id)
+	// }
 	// Delete old post-tag projections
-	err := DeletePostTagsByPostId(p.Id.Hex())
+	// err := DeletePostTagsByPostId(p.Id.Hex())
 
-	ids := new(PostTags)
-	_ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
-	fmt.Printf("%#v\n", ids)
+	// ids := new(PostTags)
+	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
+	// fmt.Printf("%#v\n", ids)
 
 	// Insert postTags
-	if err != nil {
-		return err
-	}
+	// if err != nil {
+	// 	return err
+	// }
 	// fmt.Printf("%#v\n", tagIds)
-	for _, tagId := range tagIds {
-		err := InsertPostTag(p.Id.Hex(), tagId.Hex())
-		if err != nil {
-			return err
-		}
-	}
+	// for _, tagId := range tagIds {
+	// 	err := InsertPostTag(p.Id.Hex(), tagId.Hex())
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// }
 
-	ids = new(PostTags)
-	_ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
-	fmt.Printf("%#v\n", ids)
+	// ids = new(PostTags)
+	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{}).All(ids)
+	// fmt.Printf("%#v\n", ids)
 
-
-	return DeleteOldTags()
+	// return DeleteOldTags()
+	return nil
 }
 
 // Insert saves a post to the DB.
@@ -230,29 +233,29 @@ func (p *Post) Insert() error {
 	return err
 }
 
-type PostTag struct {
-	PostId string
-	TagId  string
-}
+// type PostTag struct {
+// 	PostId string
+// 	TagId  string
+// }
 
 // InsertPostTag saves the Post ID to the given Tag ID in the DB.
-func InsertPostTag(postID string, tagID string) error {
-	// writeDB, err := db.Begin()
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	// _, err = writeDB.Exec(stmtInsertPostTag, nil, postID, tagID)
-	// session := mdb.Copy()
-	// defer session.Close()
+// func InsertPostTag(postID string, tagID string) error {
+// 	// writeDB, err := db.Begin()
+// 	// if err != nil {
+// 	// 	writeDB.Rollback()
+// 	// 	return err
+// 	// }
+// 	// _, err = writeDB.Exec(stmtInsertPostTag, nil, postID, tagID)
+// 	// session := mdb.Copy()
+// 	// defer session.Close()
 
-	err := postSession.Clone().DB(DBName).C("posts_tags").Insert(&PostTag{PostId: postID, TagId: tagID})
-	if err != nil {
-		// writeDB.Rollback()
-		return err
-	}
-	return nil //writeDB.Commit()
-}
+// 	err := postSession.Clone().DB(DBName).C("posts_tags").Insert(&PostTag{PostId: postID, TagId: tagID})
+// 	if err != nil {
+// 		// writeDB.Rollback()
+// 		return err
+// 	}
+// 	return nil //writeDB.Commit()
+// }
 
 // Update updates an existing post in the DB.
 func (p *Post) Update() error {
@@ -313,28 +316,28 @@ func (p *Post) Publish(by string) error {
 
 // DeletePostTagsByPostId deletes removes tags associated with the given post
 // from the DB.
-func DeletePostTagsByPostId(post_id string) error {
-	// session := mdb.Copy()
-	// defer session.Close()
-	
-	_, err := postSession.Clone().DB(DBName).C("posts_tags").RemoveAll(bson.M{"postid": post_id})
-	
-	if err == mgo.ErrNotFound {
-		err = nil
-	}
+// func DeletePostTagsByPostId(post_id string) error {
+// 	// session := mdb.Copy()
+// 	// defer session.Close()
 
-	// writeDB, err := db.Begin()
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	// _, err = writeDB.Exec(stmtDeletePostTagsByPostId, post_id)
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	return err //writeDB.Commit()
-}
+// 	_, err := postSession.Clone().DB(DBName).C("posts_tags").RemoveAll(bson.M{"postid": post_id})
+
+// 	if err == mgo.ErrNotFound {
+// 		err = nil
+// 	}
+
+// 	// writeDB, err := db.Begin()
+// 	// if err != nil {
+// 	// 	writeDB.Rollback()
+// 	// 	return err
+// 	// }
+// 	// _, err = writeDB.Exec(stmtDeletePostTagsByPostId, post_id)
+// 	// if err != nil {
+// 	// 	writeDB.Rollback()
+// 	// 	return err
+// 	// }
+// 	return err //writeDB.Commit()
+// }
 
 // DeletePostById deletes the given Post from the DB.
 func DeletePostById(id string) error {
@@ -357,11 +360,12 @@ func DeletePostById(id string) error {
 	if err != nil {
 		return err
 	}
-	err = DeletePostTagsByPostId(id)
-	if err != nil {
-		return err
-	}
-	return DeleteOldTags()
+	// err = DeletePostTagsByPostId(id)
+	// if err != nil {
+	// 	return err
+	// }
+	// return DeleteOldTags()
+	return nil
 }
 
 // GetPostById gets the post based on the Post ID.
@@ -390,10 +394,10 @@ func (p *Post) GetPostBySlug(slug string) error {
 	return err
 }
 
-type PostTags []*PostTag
+// type PostTags []*PostTag
 
 // GetPostsByTag returns a new pager based all the Posts associated with a Tag.
-func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool) (*utils.Pager, error) {
+func (p *Posts) GetPostsByTag(tag Tag, page, size int64, onlyPublished bool) (*utils.Pager, error) {
 	var (
 		pager *utils.Pager
 		count int64
@@ -403,25 +407,31 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 	// defer session.Close()
 	session := postSession.Clone()
 
-	ptags := new(PostTags)
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
+	// ptags := new(PostTags)
+	// err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
+	// if err != nil {
+	// 	utils.LogOnError(err, "Unable to get posts by tag.", true)
+	// 	return nil, err
+	// }
+
+	// ids := make([]bson.ObjectId, len(*ptags))
+	// if len(*ptags) > 0 {
+	// 	for i, v := range *ptags {
+	// 		ids[i] = bson.ObjectIdHex(v.PostId)
+	// 	}
+	// 	cnt, err := session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Count()
+	// 	if err != nil {
+	// 		utils.LogOnError(err, "Unable to get posts by tag.", true)
+	// 		return nil, err
+	// 	}
+	// 	count = int64(cnt)
+	// }
+	cnt, err := session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Count()
 	if err != nil {
 		utils.LogOnError(err, "Unable to get posts by tag.", true)
 		return nil, err
 	}
-
-	ids := make([]bson.ObjectId, len(*ptags))
-	if len(*ptags) > 0 {
-		for i, v := range *ptags {
-			ids[i] = bson.ObjectIdHex(v.PostId)
-		}
-		cnt, err := session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Count()
-		if err != nil {
-			utils.LogOnError(err, "Unable to get posts by tag.", true)
-			return nil, err
-		}
-		count = int64(cnt)
-	}
+	count = int64(cnt)
 
 	// row := db.QueryRow(stmtGetPostsCountByTag, tagId)
 	// err := row.Scan(&count)
@@ -439,31 +449,31 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 	// var where string
 	if onlyPublished {
 		// where = "published AND"
-		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}, "published": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag, "published": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"_id": bson.M{"$in": ids}}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
 	// err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
 	return pager, err
 }
 
 // GetAllPostsByTag gets all the Posts with the associated Tag.
-func (p *Posts) GetAllPostsByTag(tagId string) error {
+func (p *Posts) GetAllPostsByTag(tag Tag) error {
 	// session := mdb.Copy()
 	// defer session.Close()
 	session := postSession.Clone()
 
-	ptags := new(PostTags)
-	err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
-	if err != nil {
-		return err
-	}
+	// ptags := new(PostTags)
+	// err := session.DB(DBName).C("posts_tags").Find(bson.M{"tagid": tagId}).All(ptags)
+	// if err != nil {
+	// 	return err
+	// }
 
-	ids := make([]bson.ObjectId, len(*ptags))
-	for i, v := range *ptags {
-		ids[i] = bson.ObjectIdHex(v.PostId)
-	}
-	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-publishedat").All(p)
+	// ids := make([]bson.ObjectId, len(*ptags))
+	// for i, v := range *ptags {
+	// 	ids[i] = bson.ObjectIdHex(v.PostId)
+	// }
+	err := session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Sort("-publishedat").All(p)
 
 	return err
 }
