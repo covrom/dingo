@@ -209,7 +209,7 @@ func DeleteOldTags() error {
 	// fmt.Printf("%#v\n", ids)
 
 	if len(idsbson) > 0 {
-		err = session.DB(DBName).C("tags").RemoveId(bson.M{"$nin": idsbson})
+		_, err = session.DB(DBName).C("tags").RemoveAll(bson.M{"_id": bson.M{"$nin": idsbson}})
 		if err == mgo.ErrNotFound {
 			err = nil
 		}

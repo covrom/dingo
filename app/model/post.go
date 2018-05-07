@@ -304,7 +304,17 @@ func (p *Post) Publish(by string) error {
 func DeletePostTagsByPostId(post_id string) error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := postSession.Clone().DB(DBName).C("posts_tags").Remove(bson.M{"postid": post_id})
+
+	// tags:=new(Tags)
+	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{"postid": post_id}).All(tags)
+	// fmt.Printf("%#v\n",tags)
+
+	_,err := postSession.Clone().DB(DBName).C("posts_tags").RemoveAll(bson.M{"postid": post_id})
+
+	// tags=new(Tags)
+	// _ = postSession.Clone().DB(DBName).C("posts_tags").Find(bson.M{"postid": post_id}).All(tags)
+	// fmt.Printf("%#v\n",tags)
+
 
 	if err == mgo.ErrNotFound {
 		err = nil
@@ -327,7 +337,7 @@ func DeletePostTagsByPostId(post_id string) error {
 func DeletePostById(id string) error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := postSession.Clone().DB(DBName).C("posts").RemoveId(id)
+	err := postSession.Clone().DB(DBName).C("posts").RemoveId(bson.ObjectIdHex(id))
 
 	// writeDB, err := db.Begin()
 	// if err != nil {
