@@ -88,7 +88,7 @@ func generateCommentMessage(co interface{}) string {
 	if !ok {
 		return ""
 	}
-	post := &Post{Id: bson.ObjectId(c.PostId)}
+	post := &Post{Id: bson.ObjectIdHex(c.PostId)}
 	err := post.GetPostById()
 	if err != nil {
 		panic(err)
@@ -98,7 +98,7 @@ func generateCommentMessage(co interface{}) string {
 		s = "<p>" + c.Author + " commented on post <i>" + string(post.Title) + "</i>: </p><p>"
 		s += utils.Html2Str(c.Content) + "</p>"
 	} else {
-		pc := &Comment{Id: bson.ObjectId(c.Parent)}
+		pc := &Comment{Id: bson.ObjectIdHex(c.Parent)}
 		err = pc.GetCommentById()
 		if err != nil {
 			s = "<p>" + c.Author + " commented on post <i>" + string(post.Title) + "</i>: </p><p>"

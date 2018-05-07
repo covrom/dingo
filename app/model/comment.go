@@ -98,7 +98,7 @@ func (c *Comment) ParentContent() string {
 		return ""
 	}
 
-	comment := &Comment{Id: bson.ObjectId(c.Parent)}
+	comment := &Comment{Id: bson.ObjectIdHex(c.Parent)}
 	err := comment.GetCommentById()
 	if err != nil {
 		return "> Comment not found."
@@ -162,7 +162,7 @@ func (c *Comment) getChildComments() (*Comments, error) {
 	// defer session.Close()
 
 	comments := new(Comments)
-	err := comSession.Clone().DB(DBName).C("comments").Find(bson.M{"parent": string(c.Id), "approved": true}).All(comments)
+	err := comSession.Clone().DB(DBName).C("comments").Find(bson.M{"parent": c.Id.Hex(), "approved": true}).All(comments)
 
 	// err := meddler.QueryAll(db, comments, stmtGetCommentsByParentId, c.Id)
 	return comments, err
@@ -171,14 +171,14 @@ func (c *Comment) getChildComments() (*Comments, error) {
 // ParentComment returns the associated parent Comment, if one exists.
 func (c *Comment) ParentComment() (*Comment, error) {
 	parent := NewComment()
-	parent.Id = bson.ObjectId(c.Parent)
+	parent.Id = bson.ObjectIdHex(c.Parent)
 	return parent, parent.GetCommentById()
 }
 
 // Post returns the post associated with the commment.
 func (c *Comment) Post() *Post {
 	post := NewPost()
-	post.Id = bson.ObjectId(c.PostId)
+	post.Id = bson.ObjectIdHex(c.PostId)
 	post.GetPostById()
 	return post
 }
@@ -226,12 +226,12 @@ func DeleteComment(id string) error {
 	if err == nil {
 		for _, child := range *childs {
 			if len(child.Id) > 0 {
-				DeleteComment(string(child.Id))
+				DeleteComment(child.Id.Hex())
 			}
 		}
 	}
 
-	err = session.DB(DBName).C("comments").RemoveId(bson.ObjectId(id))
+	err = session.DB(DBName).C("comments").RemoveId(bson.ObjectIdHex(id))
 	if err == mgo.ErrNotFound {
 		err = nil
 	}

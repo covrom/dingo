@@ -74,7 +74,7 @@ func NewJWT(user *User) (JWT, error) {
 
 	return JWT{
 		UserRole:   user.Role,
-		UserID:     string(user.Id),
+		UserID:     user.Id.Hex(),
 		UserEmail:  user.Email,
 		Expiration: exp,
 		Token:      tokenString,

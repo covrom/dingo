@@ -6,7 +6,7 @@ import (
 	"github.com/covrom/dingo/app/utils"
 )
 
-var mdb, comSession, mesSession, postSession, setSession, tagSession, userSession *mgo.Session
+var mdb, comSession, mesSession, postSession, setSession, userSession *mgo.Session
 
 const samplePostContent = `
 Welcome to Dingo! This is your first post. You can find it in the [admin panel](/admin/).
@@ -125,7 +125,7 @@ func initConnection(dbPath string) error {
 	mesSession = mdb.Copy()
 	postSession = mdb.Copy()
 	setSession = mdb.Copy()
-	tagSession = mdb.Copy()
+	// tagSession = mdb.Copy()
 	userSession = mdb.Copy()
 
 	return nil
@@ -177,7 +177,7 @@ func createWelcomeData() error {
 	c.Website = "http://github.com/covrom/dingo"
 	c.Content = "Welcome to Dingo! This is your first comment."
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	c.PostId = string(p.Id)
+	c.PostId = p.Id.Hex()
 	c.Parent = ""
 	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"

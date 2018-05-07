@@ -95,7 +95,7 @@ func NewPost() *Post {
 // TagString returns all the tags associated with a post as a single string.
 func (p *Post) TagString() string {
 	tags := new(Tags)
-	_ = tags.GetTagsByPostId(string(p.Id))
+	_ = tags.GetTagsByPostId(p.Id.Hex())
 	// fmt.Printf("%#v\n", tags)
 	var tagString string
 	for i := 0; i < tags.Len(); i++ {
@@ -116,7 +116,7 @@ func (p *Post) Url() string {
 // Tags returns a slice of every tag associated with the post.
 func (p *Post) Tags() []*Tag {
 	tags := new(Tags)
-	err := tags.GetTagsByPostId(string(p.Id))
+	err := tags.GetTagsByPostId(p.Id.Hex())
 	if err != nil {
 		return nil
 	}
@@ -125,7 +125,7 @@ func (p *Post) Tags() []*Tag {
 
 // Author returns the User who authored the post.
 func (p *Post) Author() *User {
-	user := &User{Id: bson.ObjectId(p.CreatedBy)}
+	user := &User{Id: bson.ObjectIdHex(p.CreatedBy)}
 	err := user.GetUserById()
 	if err != nil {
 		return ghostUser
@@ -136,7 +136,7 @@ func (p *Post) Author() *User {
 // Comments returns all the comments associated with the post.
 func (p *Post) Comments() []*Comment {
 	comments := new(Comments)
-	err := comments.GetCommentsByPostId(string(p.Id))
+	err := comments.GetCommentsByPostId(p.Id.Hex())
 	if err != nil {
 		return nil
 	}
@@ -190,13 +190,13 @@ func (p *Post) Save(tags ...*Tag) error {
 		tagIds = append(tagIds, t.Id)
 	}
 	// Delete old post-tag projections
-	err := DeletePostTagsByPostId(string(p.Id))
+	err := DeletePostTagsByPostId(p.Id.Hex())
 	// Insert postTags
 	if err != nil {
 		return err
 	}
 	for _, tagId := range tagIds {
-		err := InsertPostTag(string(p.Id), string(tagId))
+		err := InsertPostTag(p.Id.Hex(), tagId.Hex())
 		if err != nil {
 			return err
 		}
@@ -400,7 +400,7 @@ func (p *Posts) GetPostsByTag(tagId string, page, size int64, onlyPublished bool
 	ids := make([]bson.ObjectId, len(*ptags))
 	if len(*ptags) > 0 {
 		for i, v := range *ptags {
-			ids[i] = bson.ObjectId(v.PostId)
+			ids[i] = bson.ObjectIdHex(v.PostId)
 		}
 		cnt, err := session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Count()
 		if err != nil {
@@ -448,7 +448,7 @@ func (p *Posts) GetAllPostsByTag(tagId string) error {
 
 	ids := make([]bson.ObjectId, len(*ptags))
 	for i, v := range *ptags {
-		ids[i] = bson.ObjectId(v.PostId)
+		ids[i] = bson.ObjectIdHex(v.PostId)
 	}
 	err = session.DB(DBName).C("posts").FindId(bson.M{"$in": ids}).Sort("-publishedat").All(p)
 

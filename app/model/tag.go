@@ -76,7 +76,7 @@ func (t *Tag) Save() error {
 			} else {
 				// oldTag.Hidden is false and t.Hidden is true
 				var posts Posts
-				err := posts.GetAllPostsByTag(string(oldTag.Id))
+				err := posts.GetAllPostsByTag(oldTag.Id.Hex())
 				if err != nil {
 					return err
 				}
@@ -117,7 +117,7 @@ func (t *Tag) Insert() error {
 	if len(t.Id) == 0 {
 		t.Id = bson.NewObjectId()
 	}
-	_, err := tagSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
+	_, err := postSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
 
 	// err := meddler.Insert(db, "tags", t)
 	return err
@@ -127,14 +127,14 @@ func (t *Tag) Insert() error {
 func (t *Tag) Update() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	_, err := tagSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
+	_, err := postSession.Clone().DB(DBName).C("tags").UpsertId(t.Id, t)
 	// err := meddler.Insert(db, "tags", t)
 	return err
 }
 
 // GetTagsByPostId finds all the tags with the give PostID
 func (tags *Tags) GetTagsByPostId(postId string) error {
-	session := tagSession.Clone()
+	session := postSession.Clone()
 
 	// ptags := new(PostTags)
 	// _ = session.DB(DBName).C("posts_tags").Find(bson.M{"postid": postId}).All(ptags)
@@ -150,7 +150,7 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 
 	idsbson := make([]bson.ObjectId, len(ids))
 	for i, v := range ids {
-		idsbson[i] = bson.ObjectId(v)
+		idsbson[i] = bson.ObjectIdHex(v)
 	}
 
 	// fmt.Printf("%#v\n", idsbson)
@@ -167,7 +167,7 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 func (tag *Tag) GetTag() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := tagSession.Clone().DB(DBName).C("tags").FindId(tag.Id).One(tag)
+	err := postSession.Clone().DB(DBName).C("tags").FindId(tag.Id).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTag, tag.Id)
 	return err
 }
@@ -176,7 +176,7 @@ func (tag *Tag) GetTag() error {
 func (tag *Tag) GetTagBySlug() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := tagSession.Clone().DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
+	err := postSession.Clone().DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
 }
@@ -185,7 +185,7 @@ func (tag *Tag) GetTagBySlug() error {
 func (tags *Tags) GetAllTags() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := tagSession.Clone().DB(DBName).C("tags").Find(bson.M{}).All(tags)
+	err := postSession.Clone().DB(DBName).C("tags").Find(bson.M{}).All(tags)
 	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }
@@ -193,7 +193,7 @@ func (tags *Tags) GetAllTags() error {
 //DeleteOldTags removes any unused tags from the DB.
 func DeleteOldTags() error {
 
-	session := tagSession.Clone()
+	session := postSession.Clone()
 
 	var ids []string
 	err := session.DB(DBName).C("posts_tags").Find(bson.M{}).Distinct("tagid", &ids)
@@ -203,7 +203,7 @@ func DeleteOldTags() error {
 
 	idsbson := make([]bson.ObjectId, len(ids))
 	for i, v := range ids {
-		idsbson[i] = bson.ObjectId(v)
+		idsbson[i] = bson.ObjectIdHex(v)
 	}
 
 	// fmt.Printf("%#v\n", ids)

@@ -18,10 +18,10 @@ func mockComment(id1, id2 bson.ObjectId) *Comment {
 	c.Content = "comment test"
 	c.Avatar = utils.Gravatar(c.Email, "50")
 	c.Parent = ""
-	c.PostId = string(id2)
+	c.PostId = id2.Hex()
 	//	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = string(id1)
+	c.UserId = id1.Hex()
 	c.Approved = true
 	return c
 }
@@ -53,7 +53,7 @@ func TestComment(t *testing.T) {
 			So(err, ShouldBeNil)
 
 			cc := mockComment(id1, id2)
-			cc.Parent = string(pc.Id)
+			cc.Parent = pc.Id.Hex()
 			cc.Content = "comment test by child"
 			err = cc.Save()
 			So(err, ShouldBeNil)
@@ -101,7 +101,7 @@ func TestComment(t *testing.T) {
 			})
 
 			Convey("Delete Comment", func() {
-				err := DeleteComment(string(cc.Id))
+				err := DeleteComment(cc.Id.Hex())
 				So(err, ShouldBeNil)
 				result := &Comment{Id: cc.Id}
 				err = result.GetCommentById()

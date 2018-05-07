@@ -26,10 +26,10 @@ func TestMessage(t *testing.T) {
 			_ = p.Save()
 
 			c := mockComment(id1, id2)
-			c.PostId = string(p.Id)
+			c.PostId = p.Id.Hex()
 			_ = c.Save()
 
-			t.Logf("%s %s\n", string(p.Id), c.PostId)
+			t.Logf("%s %s\n", p.Id.Hex(), c.PostId)
 
 			um := mockMessage(c)
 

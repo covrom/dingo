@@ -86,7 +86,7 @@ func (u *User) Update() error {
 		u.Id = bson.NewObjectId()
 	}
 	if len(u.Slug) == 0 {
-		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
+		u.Slug = GenerateSlug(u.Id.Hex()+u.Email, "users")
 	}
 	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
 
@@ -183,7 +183,7 @@ func (u *User) Insert() error {
 		u.Id = bson.NewObjectId()
 	}
 	if len(u.Slug) == 0 {
-		u.Slug = GenerateSlug(string(u.Id)+u.Email, "users")
+		u.Slug = GenerateSlug(u.Id.Hex()+u.Email, "users")
 	}
 	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
 

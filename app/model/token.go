@@ -26,7 +26,7 @@ type Token struct {
 // time in seconds until expiry.
 func NewToken(u *User, ctx *golf.Context, expire int64) *Token {
 	t := new(Token)
-	t.UserId = string(u.Id)
+	t.UserId = u.Id.Hex()
 	t.CreatedAt = utils.Now()
 	expiredAt := t.CreatedAt.Add(time.Duration(expire) * time.Second)
 	t.ExpiredAt = &expiredAt
@@ -72,7 +72,7 @@ func (t *Token) GetTokenByValue() error {
 
 // IsValid checks whether or not the token is valid.
 func (t *Token) IsValid() bool {
-	u := &User{Id: bson.ObjectId(t.UserId)}
+	u := &User{Id: bson.ObjectIdHex(t.UserId)}
 	err := u.GetUserById()
 	if err != nil {
 		return false
