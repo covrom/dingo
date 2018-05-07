@@ -15,7 +15,7 @@ func mockMessage(c *Comment) *Message {
 }
 
 func TestMessage(t *testing.T) {
-	id1 := bson.NewObjectId()
+	// id1 := bson.NewObjectId()
 	id2 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
@@ -25,7 +25,7 @@ func TestMessage(t *testing.T) {
 			p := mockPost()
 			_ = p.Save()
 
-			c := mockComment(id1, id2)
+			c := mockComment(tmp_post_id_1, id2)
 			c.PostId = p.Id.Hex()
 			_ = c.Save()
 

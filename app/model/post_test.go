@@ -5,8 +5,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/globalsign/mgo/bson"
-
 	"github.com/covrom/dingo/app/utils"
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -27,7 +25,6 @@ func mockPost() *Post {
 }
 
 func TestPost(t *testing.T) {
-	id1 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
 		Initialize("localhost")
@@ -66,7 +63,7 @@ func TestPost(t *testing.T) {
 
 				Convey("Tags should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = id1
+					newPost.Id = tmp_post_id_1
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -86,7 +83,7 @@ func TestPost(t *testing.T) {
 				So(err, ShouldBeNil)
 
 				Convey("Slug should be updated", func() {
-					p := &Post{Id: id1}
+					p := &Post{Id: tmp_post_id_1}
 					err := p.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -103,7 +100,7 @@ func TestPost(t *testing.T) {
 
 				Convey("Title should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = id1
+					newPost.Id = tmp_post_id_1
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -112,8 +109,8 @@ func TestPost(t *testing.T) {
 			})
 
 			Convey("Delete post by ID", func() {
-				DeletePostById(id1.Hex())
-				p := &Post{Id: id1}
+				DeletePostById(tmp_post_id_1.Hex())
+				p := &Post{Id: tmp_post_id_1}
 				err := p.GetPostById()
 
 				So(err, ShouldNotBeNil)
@@ -182,7 +179,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get the welcome post", func() {
 				post := new(Post)
-				post.Id = id1
+				post.Id = tmp_post_id_1
 				err := post.GetPostById()
 
 				So(err, ShouldBeNil)
