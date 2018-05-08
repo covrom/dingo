@@ -116,6 +116,9 @@ func (p *Post) Url() string {
 
 // Author returns the User who authored the post.
 func (p *Post) Author() *User {
+	if !bson.IsObjectIdHex(p.CreatedBy) {
+		return ghostUser
+	}
 	user := &User{Id: bson.ObjectIdHex(p.CreatedBy)}
 	err := user.GetUserById()
 	if err != nil {
