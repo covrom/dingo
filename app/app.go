@@ -3,7 +3,6 @@ package Dingo
 
 import (
 	"fmt"
-	"os"
 
 	"github.com/covrom/dingo/app/handler"
 	"github.com/covrom/dingo/app/model"
@@ -16,7 +15,7 @@ import (
 func Init(dbPath, privKey, pubKey string) {
 	model.InitializeKey(privKey, pubKey)
 	if err := model.Initialize(dbPath, false); err != nil {
-			err = fmt.Errorf("failed to intialize db: %v", err)
+		err = fmt.Errorf("failed to intialize db: %v", err)
 		panic(err)
 	}
 	fmt.Printf("Database is used at %s\n", dbPath)
