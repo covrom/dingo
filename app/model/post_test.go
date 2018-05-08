@@ -11,9 +11,10 @@ import (
 
 func mockPost() *Post {
 	p := NewPost()
+	// p.Id = tmp_post_id_1
 	p.Title = "Welcome to Dingo!"
 	p.Slug = "welcome-to-dingo"
-	p.Markdown = samplePostContent
+	p.Markdown = "[test] "+samplePostContent
 	p.Html = utils.Markdown2Html(p.Markdown)
 	p.IsPage = false
 	p.AllowComment = true
@@ -27,7 +28,7 @@ func mockPost() *Post {
 func TestPost(t *testing.T) {
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
-		Initialize("localhost")
+		Initialize("localhost", true)
 
 		Convey("Create a published post", func() {
 			p := mockPost()
@@ -63,10 +64,11 @@ func TestPost(t *testing.T) {
 
 				Convey("Tags should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = tmp_post_id_1
+					newPost.Id = p.Id
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
+
 					tags := new(Tags)
 					err = tags.GetTagsByPostId(p.Id.Hex())
 					So(tags, ShouldHaveLength, 1)
@@ -80,14 +82,16 @@ func TestPost(t *testing.T) {
 				p.Slug = newSlug
 				err = p.Save()
 
+				// fmt.Printf("slug: %s", p.Slug)
+
 				So(err, ShouldBeNil)
 
 				Convey("Slug should be updated", func() {
-					p := &Post{Id: tmp_post_id_1}
-					err := p.GetPostById()
+					p2 := &Post{Id: p.Id}
+					err := p2.GetPostById()
 
 					So(err, ShouldBeNil)
-					So(p.Slug, ShouldEqual, newSlug)
+					So(p2.Slug, ShouldEqual, newSlug)
 				})
 			})
 
@@ -100,7 +104,7 @@ func TestPost(t *testing.T) {
 
 				Convey("Title should be updated", func() {
 					newPost := new(Post)
-					newPost.Id = tmp_post_id_1
+					newPost.Id = p.Id
 					err := newPost.GetPostById()
 
 					So(err, ShouldBeNil)
@@ -109,6 +113,7 @@ func TestPost(t *testing.T) {
 			})
 
 			Convey("Delete post by ID", func() {
+				// delete welcome data
 				DeletePostById(tmp_post_id_1.Hex())
 				p := &Post{Id: tmp_post_id_1}
 				err := p.GetPostById()

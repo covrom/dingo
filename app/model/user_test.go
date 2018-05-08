@@ -29,7 +29,7 @@ func userEqualCheck(user *User, expected *User) {
 func TestUser(t *testing.T) {
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
-		Initialize("localhost")
+		Initialize("localhost", true)
 
 		Convey("Test User", func() {
 			user := mockUser()

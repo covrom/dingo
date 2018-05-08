@@ -82,7 +82,7 @@ Table:
 
 // Initialize sets up the DB by creaing a new connection, creating tables if
 // they don't exist yet, and creates the welcome data.
-func Initialize(dbPath string) error {
+func Initialize(dbPath string, skipWelcomeData bool) error {
 	if err := initConnection(dbPath); err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func Initialize(dbPath string) error {
 
 	checkBlogSettings()
 
-	if !dbExists {
+	if !(dbExists || skipWelcomeData) {
 		if err := createWelcomeData(); err != nil {
 			return err
 		}

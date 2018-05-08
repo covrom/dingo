@@ -45,7 +45,7 @@ func TestComment(t *testing.T) {
 	id2 := bson.NewObjectId()
 	Convey("Initialize database", t, func() {
 		DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
-		Initialize("localhost")
+		Initialize("localhost", true)
 
 		Convey("Test Message", func() {
 			pc := mockComment(tmp_post_id_1, id2)

@@ -15,7 +15,7 @@ import (
 // the database connection.
 func Init(dbPath, privKey, pubKey string) {
 	model.InitializeKey(privKey, pubKey)
-	if err := model.Initialize(dbPath); err != nil {
+	if err := model.Initialize(dbPath, false); err != nil {
 			err = fmt.Errorf("failed to intialize db: %v", err)
 		panic(err)
 	}

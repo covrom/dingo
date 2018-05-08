@@ -265,6 +265,8 @@ func (p *Post) Update() error {
 	// defer session.Close()
 	_, err = postSession.Clone().DB(DBName).C("posts").UpsertId(p.Id, p)
 
+	// fmt.Printf("slug: %s", p.Slug)
+
 	// err = meddler.Update(db, "posts", p)
 	return err
 }
@@ -439,7 +441,7 @@ func (p *Posts) GetPostsByTag(tag Tag, page, size int64, onlyPublished bool) (*u
 	// var where string
 	if onlyPublished {
 		// where = "published AND"
-		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag, "published": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag, "ispublished": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	} else {
 		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
@@ -477,7 +479,7 @@ func GetNumberOfPosts(isPage bool, published bool) (int64, error) {
 	var err error
 	var cnt int
 	if published {
-		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Count()
+		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "ispublished": true}).Count()
 	} else {
 		cnt, err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Count()
 	}
@@ -519,7 +521,7 @@ func (posts *Posts) GetPostList(page, size int64, isPage bool, onlyPublished boo
 	session := postSession.Clone()
 
 	if onlyPublished {
-		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "ispublished": true}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
 	} else {
 		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Sort(safeOrderBy).Skip(int(pager.Begin)).Limit(int(size)).All(posts)
 	}
@@ -566,7 +568,7 @@ func (p *Posts) GetAllPostList(isPage bool, onlyPublished bool, orderBy string) 
 	safeOrderBy := getSafeOrderByStmt(orderBy)
 
 	if onlyPublished {
-		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "published": true}).Sort(safeOrderBy).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage, "ispublished": true}).Sort(safeOrderBy).All(p)
 	} else {
 		err = session.DB(DBName).C("posts").Find(bson.M{"ispage": isPage}).Sort(safeOrderBy).All(p)
 	}
@@ -615,7 +617,7 @@ func GetPublishedPosts(offset, limit int) (Posts, error) {
 	// defer session.Close()
 
 	var posts Posts
-	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"published": true}).Skip(offset).Limit(limit).All(&posts)
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"ispublished": true}).Skip(offset).Limit(limit).All(&posts)
 
 	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 1, offset, limit)
 	return posts, err
@@ -626,7 +628,7 @@ func GetUnpublishedPosts(offset, limit int) (Posts, error) {
 	// defer session.Close()
 
 	var posts Posts
-	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"published": false}).Skip(offset).Limit(limit).All(&posts)
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"ispublished": false}).Skip(offset).Limit(limit).All(&posts)
 	// err := meddler.QueryAll(db, &posts, stmtGetPostsOffsetLimit, 0, offset, limit)
 	return posts, err
 }
