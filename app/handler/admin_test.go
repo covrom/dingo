@@ -37,8 +37,8 @@ func TestViewHandler(t *testing.T) {
 	model.InitializeKey(testPrivKey, testPubKey)
 
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Dashboard view", func() {
 			ctx := authenticatedContext(nil, "GET", "/admin/")
@@ -175,7 +175,7 @@ func TestViewHandler(t *testing.T) {
 			})
 		})
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 			os.Remove(testPubKey)
 			os.Remove(testPrivKey)
 		})
@@ -184,8 +184,8 @@ func TestViewHandler(t *testing.T) {
 
 func TestProfileChangeHandler(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Authenticated user", func() {
 			form := url.Values{}
@@ -201,15 +201,15 @@ func TestProfileChangeHandler(t *testing.T) {
 			})
 		})
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }
 
 func TestPostHandler(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Create a post with incorrect format", func() {
 			form := url.Values{}
@@ -264,7 +264,8 @@ func TestPostHandler(t *testing.T) {
 				form.Add("comment", "on")
 				form.Add("category", "Dingo")
 				form.Add("status", "on")
-				ctx := authenticatedContext(form, "POST", "/admin/editor/1/")
+				form.Add("id",  model.Tmp_id_1.Hex())
+				ctx := authenticatedContext(form, "POST", fmt.Sprintf("/admin/editor/%s/", model.Tmp_id_1.Hex()))
 				app := ctx.App
 				app.ServeHTTP(ctx.Response, ctx.Request)
 
@@ -330,9 +331,9 @@ func TestPostHandler(t *testing.T) {
 				})
 
 				Convey("Should have correct author", func() {
-					So(post.CreatedBy, ShouldEqual, 1)
-					So(post.UpdatedBy, ShouldEqual, 1)
-					So(post.PublishedBy, ShouldEqual, 1)
+					So(post.CreatedBy, ShouldEqual, model.Tmp_id_1.Hex())
+					So(post.UpdatedBy, ShouldEqual, model.Tmp_id_1.Hex())
+					So(post.PublishedBy, ShouldEqual, model.Tmp_id_1.Hex())
 				})
 
 				Convey("Should create relevant tags", func() {
@@ -358,7 +359,7 @@ func TestPostHandler(t *testing.T) {
 				form.Add("comment", "on")
 				form.Add("category", "Dingo")
 				form.Add("status", "on")
-				ctx = authenticatedContext(form, "POST", "/admin/editor/1/")
+				ctx = authenticatedContext(form, "POST", fmt.Sprintf("/admin/editor/%s/", model.Tmp_id_1.Hex()))
 
 				app.ServeHTTP(ctx.Response, ctx.Request)
 
@@ -411,7 +412,7 @@ func TestPostHandler(t *testing.T) {
 
 			Convey("Remove the post", func() {
 				form := url.Values{}
-				ctx = authenticatedContext(form, "DELETE", "/admin/editor/1/")
+				ctx = authenticatedContext(form, "DELETE", fmt.Sprintf("/admin/editor/%s/", model.Tmp_id_1.Hex()))
 				app.ServeHTTP(ctx.Response, ctx.Request)
 
 				Convey("Successfully retrieve the post", func() {
@@ -422,15 +423,15 @@ func TestPostHandler(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }
 
 func TestCommentHandler(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Create a new post", func() {
 			form := url.Values{}
@@ -452,7 +453,7 @@ func TestCommentHandler(t *testing.T) {
 				form.Add("email", "ken@gmail.com")
 				form.Add("website", "https://en.wikipedia.org/wiki/Ken_Thompson")
 				form.Add("comment", "Nice post!")
-				ctx := mockContext(form, "POST", "/comment/1/")
+				ctx := mockContext(form, "POST", fmt.Sprintf("/comment/%s/", model.Tmp_id_1.Hex()))
 				app.ServeHTTP(ctx.Response, ctx.Request)
 
 				c := &model.Comment{Id: model.Tmp_id_1}
@@ -525,15 +526,15 @@ func TestCommentHandler(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }
 
 func TestSettingHandler(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Save settings", func() {
 			settings := []struct {
@@ -613,15 +614,15 @@ func TestSettingHandler(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }
 
 func TestPasswordHandler(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("Change password with wrong old password", func() {
 			form := url.Values{}
@@ -648,7 +649,7 @@ func TestPasswordHandler(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }

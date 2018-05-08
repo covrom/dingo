@@ -3,8 +3,6 @@ package handler
 import (
 	"fmt"
 	"net/http/httptest"
-	"os"
-	"path/filepath"
 	"testing"
 	"time"
 
@@ -30,8 +28,8 @@ func mockPost() *model.Post {
 
 func TestPost(t *testing.T) {
 	Convey("Initialize database", t, func() {
-		testDB := fmt.Sprintf(filepath.Join(os.TempDir(), "ding-testdb-%s"), fmt.Sprintf(time.Now().Format("20060102T150405.000")))
-		model.Initialize(testDB, true)
+		model.DBName = fmt.Sprintf("ding-testdb-%s", time.Now().Format("20060102T150405"))
+		model.Initialize("localhost", true)
 
 		Convey("When the post is not found", func() {
 			ctx := mockContext(nil, "GET", "/someslug/")
@@ -52,7 +50,7 @@ func TestPost(t *testing.T) {
 		})
 
 		Reset(func() {
-			os.Remove(testDB)
+			model.DropDatabase()
 		})
 	})
 }
