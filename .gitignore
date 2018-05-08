@@ -40,3 +40,6 @@ upload/*
 
 cpu.out
 model.test
+dingo.exe
+blog.rsa
+blog.rsa.pub
