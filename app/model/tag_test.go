@@ -47,7 +47,7 @@ func TestTag(t *testing.T) {
 				tags := new(Tags)
 				err = tags.GetTagsByPostId(p.Id.Hex())
 
-				So(tags, ShouldHaveLength, 2)
+				So(tags, ShouldHaveLength, 3)
 				So(err, ShouldBeNil)
 			})
 

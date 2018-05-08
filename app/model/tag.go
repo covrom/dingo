@@ -200,7 +200,7 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 func (tags *Tags) GetAllTags() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{}).Select(bson.M{"tags": 1, "_id": 0}).One(tags)
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{}).Select(bson.M{"tags": 1}).One(tags)
 	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }
