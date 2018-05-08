@@ -95,18 +95,8 @@ func NewPost() *Post {
 
 // TagString returns all the tags associated with a post as a single string.
 func (p *Post) TagString() string {
-	tags := new(Tags)
-	_ = tags.GetTagsByPostId(p.Id.Hex())
-	// fmt.Printf("%#v\n", tags)
-	var tagString string
-	for i := 0; i < tags.Len(); i++ {
-		if i != tags.Len()-1 {
-			tagString += tags.Get(i).Name + ", "
-		} else {
-			tagString += tags.Get(i).Name
-		}
-	}
-	return tagString
+
+	return p.Tags.String()
 }
 
 // Url returns the URL of the post.

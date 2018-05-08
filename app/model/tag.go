@@ -41,6 +41,16 @@ func (t Tags) GetAll() []Tag {
 	return t
 }
 
+func (t Tags) String() (res string) {
+	for i, s := range t {
+		res += s.Name
+		if i < len(t)-1 {
+			res += ", "
+		}
+	}
+	return
+}
+
 // NewTag creates a new Tag, with CreatedAt being set to the current time.
 func NewTag(name, slug string) Tag {
 	return Tag{
@@ -131,7 +141,13 @@ func GenerateTagsFromCommaString(input string) (output Tags) {
 // GetTagsByPostId finds all the tags with the give PostID
 func (tags *Tags) GetTagsByPostId(postId string) error {
 
-	err := postSession.Clone().DB(DBName).C("posts").FindId(bson.ObjectIdHex(postId)).Select(bson.M{"tags": 1, "_id": 0}).One(tags)
+	var post Post
+	err := postSession.Clone().DB(DBName).C("posts").FindId(bson.ObjectIdHex(postId)).One(&post)
+	if err != nil {
+		return err
+	}
+	*tags = post.Tags
+	return nil
 
 	// session := postSession.Clone()
 
@@ -159,7 +175,7 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 	// // fmt.Printf("%#v %v\n", tags, err)
 
 	// // err := meddler.QueryAll(db, tags, stmtGetTagsByPostId, postId)
-	return err
+	// return err
 }
 
 //GetTag finds any data for the tag in the DB.
