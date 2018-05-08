@@ -6,6 +6,7 @@ import (
 	"github.com/covrom/dingo/app/model"
 	"github.com/covrom/dingo/app/utils"
 	"github.com/dinever/golf"
+	"github.com/globalsign/mgo/bson"
 )
 
 func AdminHandler(ctx *golf.Context) {
@@ -69,11 +70,11 @@ func PostSaveHandler(ctx *golf.Context) {
 	u := userObj.(*model.User)
 	p := model.NewPost()
 	id := ctx.Param("id")
-	idInt, _ := strconv.Atoi(id)
-	p.Id = int64(idInt)
+	// idInt, _ := strconv.Atoi(id)
+	p.Id = bson.ObjectIdHex(id)
 	p.UpdateFromRequest(ctx.Request)
-	p.CreatedBy = u.Id
-	p.UpdatedBy = u.Id
+	p.CreatedBy = u.Id.Hex()
+	p.UpdatedBy = u.Id.Hex()
 	p.IsPage = false
 	p.Hits = 1
 	tags := model.GenerateTagsFromCommaString(ctx.Request.FormValue("tag"))
@@ -98,12 +99,12 @@ func ContentSaveHandler(ctx *golf.Context) {
 	u := userObj.(*model.User)
 	id := ctx.Param("id")
 	p := new(model.Post)
-	idInt, _ := strconv.Atoi(id)
-	p.Id = int64(idInt)
+	// idInt, _ := strconv.Atoi(id)
+	p.Id = bson.ObjectIdHex(id)
 	p.GetPostById()
 	p.UpdateFromRequest(ctx.Request)
 	p.Html = utils.Markdown2Html(p.Markdown)
-	p.UpdatedBy = u.Id
+	p.UpdatedBy = u.Id.Hex()
 	p.Hits = 1
 	tags := model.GenerateTagsFromCommaString(ctx.Request.FormValue("tag"))
 	var e error
@@ -149,8 +150,8 @@ func ContentEditHandler(ctx *golf.Context) {
 	userObj, _ := ctx.Session.Get("user")
 	u := userObj.(*model.User)
 	id := ctx.Param("id")
-	postId, _ := strconv.Atoi(id)
-	p := &model.Post{Id: int64(postId)}
+	// postId, _ := strconv.Atoi(id)
+	p := &model.Post{Id: bson.ObjectIdHex(id)}
 	err := p.GetPostById()
 	if p == nil || err != nil {
 		ctx.Redirect("/admin/posts/")
@@ -165,8 +166,8 @@ func ContentEditHandler(ctx *golf.Context) {
 
 func ContentRemoveHandler(ctx *golf.Context) {
 	id := ctx.Param("id")
-	postId, _ := strconv.Atoi(id)
-	err := model.DeletePostById(int64(postId))
+	// postId, _ := strconv.Atoi(id)
+	err := model.DeletePostById(id)
 	if err != nil {
 		ctx.JSON(map[string]interface{}{
 			"status": "error",
@@ -216,7 +217,7 @@ func PageSaveHandler(ctx *golf.Context) {
 	userObj, _ := ctx.Session.Get("user")
 	u := userObj.(*model.User)
 	p := model.NewPost()
-	p.Id = 0
+	// p.Id = 0
 	if !model.PostChangeSlug(ctx.Request.FormValue("slug")) {
 		ctx.JSON(map[string]interface{}{
 			"status": "error",
@@ -225,8 +226,8 @@ func PageSaveHandler(ctx *golf.Context) {
 	}
 	p.UpdateFromRequest(ctx.Request)
 	p.Html = utils.Markdown2Html(p.Markdown)
-	p.CreatedBy = u.Id
-	p.UpdatedBy = u.Id
+	p.CreatedBy = u.Id.Hex()
+	p.UpdatedBy = u.Id.Hex()
 	p.IsPage = true
 	p.Hits = 1
 	tags := model.GenerateTagsFromCommaString(ctx.Request.FormValue("tag"))
@@ -270,8 +271,8 @@ func CommentViewHandler(ctx *golf.Context) {
 func CommentAddHandler(ctx *golf.Context) {
 	userObj, _ := ctx.Session.Get("user")
 	u := userObj.(*model.User)
-	pid, _ := strconv.Atoi(ctx.Request.FormValue("pid"))
-	parent := &model.Comment{Id: int64(pid)}
+	pid := ctx.Request.FormValue("pid")
+	parent := &model.Comment{Id: bson.ObjectIdHex(pid)}
 	err := parent.GetCommentById()
 	if err != nil {
 		panic(err)
@@ -286,11 +287,11 @@ func CommentAddHandler(ctx *golf.Context) {
 	c.Website = u.Website
 	c.Content = ctx.Request.FormValue("content")
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	c.Parent = parent.Id
+	c.Parent = parent.Id.Hex()
 	c.PostId = parent.PostId
 	c.Ip = ctx.Request.RemoteAddr
 	c.UserAgent = ctx.Request.UserAgent()
-	c.UserId = u.Id
+	c.UserId = u.Id.Hex()
 	c.Approved = true
 	if err := c.Save(); err != nil {
 		panic(err)
@@ -306,8 +307,8 @@ func CommentAddHandler(ctx *golf.Context) {
 
 func CommentUpdateHandler(ctx *golf.Context) {
 	// FIXME:
-	id, _ := strconv.Atoi(ctx.Request.FormValue("id"))
-	c := &model.Comment{Id: int64(id)}
+	id := ctx.Request.FormValue("id")
+	c := &model.Comment{Id: bson.ObjectIdHex(id)}
 	err := c.GetCommentById()
 	if err != nil {
 		ctx.JSON(map[string]interface{}{
@@ -326,8 +327,8 @@ func CommentUpdateHandler(ctx *golf.Context) {
 
 func CommentRemoveHandler(ctx *golf.Context) {
 	// FIXME:
-	id, _ := strconv.Atoi(ctx.Request.FormValue("id"))
-	err := model.DeleteComment(int64(id))
+	id := ctx.Request.FormValue("id")
+	err := model.DeleteComment(id)
 	if err != nil {
 		ctx.JSON(map[string]interface{}{
 			"status": "success",
@@ -356,7 +357,7 @@ func SettingUpdateHandler(ctx *golf.Context) {
 	ctx.Request.ParseForm()
 	for key, value := range ctx.Request.Form {
 		s := model.NewSetting(key, value[0], "")
-		s.CreatedBy = u.Id
+		s.CreatedBy = u.Id.Hex()
 		if err = s.Save(); err != nil {
 			panic(err)
 			ctx.JSON(map[string]interface{}{

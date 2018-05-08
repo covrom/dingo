@@ -200,13 +200,17 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 // }
 
 // GetTagBySlug finds the tag based on the Tag's slug value.
-// func (tag *Tag) GetTagBySlug() error {
-// 	// session := mdb.Copy()
-// 	// defer session.Close()
-// 	err := postSession.Clone().DB(DBName).C("tags").Find(bson.M{"slug": tag.Slug}).One(tag)
-// 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
-// 	return err
-// }
+func (tag *Tag) GetTagBySlug() error {
+	// session := mdb.Copy()
+	// defer session.Close()
+	ts := &struct{ Tags Tags }{}
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"tags.slug": tag.Slug}).Limit(1).Select(bson.M{"tags": 1}).One(ts)
+	if len(ts.Tags) > 0 {
+		*tag = ts.Tags[0]
+	}
+	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
+	return err
+}
 
 // GetAllTags gets all the tags in the DB.
 func (tags *Tags) GetAllTags() error {

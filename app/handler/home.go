@@ -1,15 +1,17 @@
 package handler
 
 import (
-	"github.com/dinever/golf"
-	"github.com/covrom/dingo/app/model"
-	"github.com/covrom/dingo/app/utils"
 	"html/template"
 	"log"
 	"net/url"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/covrom/dingo/app/model"
+	"github.com/covrom/dingo/app/utils"
+	"github.com/dinever/golf"
+	"github.com/globalsign/mgo/bson"
 )
 
 func RegisterFunctions(app *golf.Application) {
@@ -67,11 +69,11 @@ func ContentHandler(ctx *golf.Context) {
 
 func CommentHandler(ctx *golf.Context) {
 	id := ctx.Param("id")
-	cid, _ := strconv.Atoi(id)
+	// cid, _ := strconv.Atoi(id)
 	post := new(model.Post)
-	post.Id = int64(cid)
+	post.Id = bson.ObjectIdHex(id)
 	err := post.GetPostById()
-	if cid < 1 || err != nil {
+	if len(id) == 0 || err != nil {
 		ctx.JSON(map[string]interface{}{
 			"status": "error",
 		})
@@ -82,12 +84,12 @@ func CommentHandler(ctx *golf.Context) {
 	c.Website = ctx.Request.FormValue("website")
 	c.Content = strings.Replace(utils.Html2Str(template.HTMLEscapeString(ctx.Request.FormValue("comment"))), "\n", "<br/>", -1)
 	c.Avatar = utils.Gravatar(c.Email, "50")
-	c.PostId = post.Id
-	pid, _ := strconv.Atoi(ctx.Request.FormValue("pid"))
-	c.Parent = int64(pid)
+	c.PostId = post.Id.Hex()
+	pid := ctx.Request.FormValue("pid")
+	c.Parent = pid
 	c.Ip = ctx.Request.RemoteAddr
 	c.UserAgent = ctx.Request.UserAgent()
-	c.UserId = 0
+	c.UserId = ""
 	msg := c.ValidateComment()
 	if msg == "" {
 		if err := c.Save(); err != nil {
@@ -135,7 +137,7 @@ func TagHandler(ctx *golf.Context) {
 		return
 	}
 	posts := new(model.Posts)
-	pager, err := posts.GetPostsByTag(tag.Id, int64(page), 5, true)
+	pager, err := posts.GetPostsByTag(tagSlug, int64(page), 5, true)
 	data := map[string]interface{}{
 		"Posts": posts,
 		"Pager": pager,

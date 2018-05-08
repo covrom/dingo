@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"strconv"
+	"github.com/globalsign/mgo/bson"
 
-	"github.com/dinever/golf"
 	"github.com/covrom/dingo/app/model"
+	"github.com/dinever/golf"
 )
 
 func registerUserHandlers(app *golf.Application, routes map[string]map[string]interface{}) {
@@ -23,13 +23,13 @@ func registerUserHandlers(app *golf.Application, routes map[string]map[string]in
 
 // APIUserHandler retrieves the user with the given id.
 func APIUserHandler(ctx *golf.Context) {
-	id, err := strconv.Atoi(ctx.Param("user_id"))
-	if err != nil {
-		handleErr(ctx, 500, err)
-		return
-	}
-	user := &model.User{Id: int64(id)}
-	err = user.GetUserById()
+	id := ctx.Param("user_id")
+	// if err != nil {
+	// 	handleErr(ctx, 500, err)
+	// 	return
+	// }
+	user := &model.User{Id: bson.ObjectIdHex(id)}
+	err := user.GetUserById()
 	if err != nil {
 		handleErr(ctx, 404, err)
 		return

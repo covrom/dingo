@@ -12,7 +12,7 @@ func mockTag(name, slug string) Tag {
 	return NewTag(name, slug)
 }
 
-func tagEqualCheck(tag, expected *Tag) {
+func tagEqualCheck(tag, expected Tag) {
 	So(tag.Name, ShouldEqual, expected.Name)
 	So(tag.Slug, ShouldEqual, expected.Slug)
 }
@@ -59,13 +59,14 @@ func TestTag(t *testing.T) {
 			// 	So(err, ShouldBeNil)
 			// })
 
-			// Convey("Get tag by slug", func() {
-			// 	ttag := &Tag{Slug: tag.Slug}
-			// 	err = ttag.GetTagBySlug()
+			Convey("Get tag by slug", func() {
+				ttag := &Tag{}
+				*ttag = p.Tags[0]
+				err = ttag.GetTagBySlug()
 
-			// 	tagEqualCheck(ttag, tag)
-			// 	So(err, ShouldBeNil)
-			// })
+				tagEqualCheck(*ttag, p.Tags[0])
+				So(err, ShouldBeNil)
+			})
 
 			Convey("Get all tags", func() {
 				ts := new(Tags)

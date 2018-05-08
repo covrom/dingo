@@ -1,10 +1,9 @@
 package handler
 
 import (
-	"strconv"
-
-	"github.com/dinever/golf"
 	"github.com/covrom/dingo/app/model"
+	"github.com/dinever/golf"
+	"github.com/globalsign/mgo/bson"
 )
 
 func registerCommentsHandlers(app *golf.Application, routes map[string]map[string]interface{}) {
@@ -20,13 +19,13 @@ func registerCommentsHandlers(app *golf.Application, routes map[string]map[strin
 
 // APICommentHandler retrieves a comment with the given comment id.
 func APICommentHandler(ctx *golf.Context) {
-	id, err := strconv.Atoi(ctx.Param("comment_id"))
-	if err != nil {
-		handleErr(ctx, 500, err)
-		return
-	}
-	comment := &model.Comment{Id: int64(id)}
-	err = comment.GetCommentById()
+	id := ctx.Param("comment_id")
+	// if err != nil {
+	// 	handleErr(ctx, 500, err)
+	// 	return
+	// }
+	comment := &model.Comment{Id: bson.ObjectIdHex(id)}
+	err := comment.GetCommentById()
 	if err != nil {
 		handleErr(ctx, 404, err)
 		return
@@ -36,13 +35,13 @@ func APICommentHandler(ctx *golf.Context) {
 
 // APICommentPostHandler retrives the tag with the given post id.
 func APICommentPostHandler(ctx *golf.Context) {
-	id, err := strconv.Atoi(ctx.Param("post_id"))
-	if err != nil {
-		handleErr(ctx, 500, err)
-		return
-	}
+	id := ctx.Param("post_id")
+	// if err != nil {
+	// 	handleErr(ctx, 500, err)
+	// 	return
+	// }
 	comments := new(model.Comments)
-	err = comments.GetCommentsByPostId(int64(id))
+	err := comments.GetCommentsByPostId(id)
 	if err != nil {
 		handleErr(ctx, 404, err)
 		return

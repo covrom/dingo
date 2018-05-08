@@ -4,10 +4,10 @@ import (
 	"github.com/covrom/dingo/app/model"
 )
 
-func getAllTags() []*model.Tag {
+func getAllTags() model.Tags {
 	tags := new(model.Tags)
 	_ = tags.GetAllTags()
-	return tags.GetAll()
+	return *tags
 }
 
 func getRecentPosts() []*model.Post {

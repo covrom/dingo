@@ -5,9 +5,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/dinever/golf"
+	"github.com/globalsign/mgo/bson"
+
 	"github.com/covrom/dingo/app/model"
 	"github.com/covrom/dingo/app/utils"
+	"github.com/dinever/golf"
 )
 
 func registerPostHandlers(app *golf.Application, routes map[string]map[string]interface{}) {
@@ -62,12 +64,12 @@ func getPostFromContext(ctx *golf.Context, param ...string) (post *model.Post) {
 	var err error
 	switch param[0] {
 	case "post_id":
-		id, convErr := strconv.Atoi(ctx.Param("post_id"))
-		if convErr != nil {
-			handleErr(ctx, 500, convErr)
-			return nil
-		}
-		err = post.GetPostById(int64(id))
+		id := ctx.Param("post_id")
+		// if convErr != nil {
+		// 	handleErr(ctx, 500, convErr)
+		// 	return nil
+		// }
+		err = post.GetPostById(bson.ObjectIdHex(id))
 	case "slug":
 		slug := ctx.Param("slug")
 		err = post.GetPostBySlug(slug)
@@ -195,7 +197,7 @@ func APIPostTagsHandler(ctx *golf.Context) {
 	if post == nil {
 		return
 	}
-	tags := post.Tags()
+	tags := post.Tags
 	ctx.JSON(NewAPISuccessResponse(tags))
 }
 
@@ -220,7 +222,7 @@ func APIPostSaveHandler(ctx *golf.Context) {
 		ctx.JSON(APIResponseBodyJSON{Data: nil, Status: NewErrorStatusJSON(err.Error())})
 		return
 	}
-	err = post.Save(post.Tags()...)
+	err = post.Save(post.Tags...)
 	if err != nil {
 		ctx.SendStatus(http.StatusInternalServerError)
 		ctx.JSON(APIResponseBodyJSON{Data: nil, Status: NewErrorStatusJSON(err.Error())})
@@ -257,7 +259,7 @@ func APIPostDeleteHandler(ctx *golf.Context) {
 		ctx.SendStatus(http.StatusNotFound)
 		return
 	}
-	err := model.DeletePostById(post.Id)
+	err := model.DeletePostById(post.Id.Hex())
 	if err != nil {
 		ctx.SendStatus(http.StatusInternalServerError)
 		ctx.JSON(APIResponseBodyJSON{Data: nil, Status: NewErrorStatusJSON(err.Error())})

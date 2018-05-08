@@ -70,7 +70,7 @@ func (c *Comment) Save() error {
 	return err
 
 	// err := meddler.Save(db, "comments", c)
-	return err
+	// return err
 }
 
 // ToJson returns a comment as a map, in order to be encoded as JSON.

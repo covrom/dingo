@@ -129,7 +129,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get post by Tag", func() {
 				posts := new(Posts)
-				pager, err := posts.GetPostsByTag(updateTags[0], 1, 1, false)
+				pager, err := posts.GetPostsByTag(updateTags[0].Slug, 1, 1, false)
 
 				So(posts, ShouldHaveLength, 1)
 				So(pager.Begin, ShouldEqual, 0)

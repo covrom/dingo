@@ -389,7 +389,7 @@ func (p *Post) GetPostBySlug(slug string) error {
 // type PostTags []*PostTag
 
 // GetPostsByTag returns a new pager based all the Posts associated with a Tag.
-func (p *Posts) GetPostsByTag(tag Tag, page, size int64, onlyPublished bool) (*utils.Pager, error) {
+func (p *Posts) GetPostsByTag(tagslug string, page, size int64, onlyPublished bool) (*utils.Pager, error) {
 	var (
 		pager *utils.Pager
 		count int64
@@ -418,7 +418,7 @@ func (p *Posts) GetPostsByTag(tag Tag, page, size int64, onlyPublished bool) (*u
 	// 	}
 	// 	count = int64(cnt)
 	// }
-	cnt, err := session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Count()
+	cnt, err := session.DB(DBName).C("posts").Find(bson.M{"tags.slug": tagslug}).Count()
 	if err != nil {
 		utils.LogOnError(err, "Unable to get posts by tag.", true)
 		return nil, err
@@ -441,9 +441,9 @@ func (p *Posts) GetPostsByTag(tag Tag, page, size int64, onlyPublished bool) (*u
 	// var where string
 	if onlyPublished {
 		// where = "published AND"
-		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag, "ispublished": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"tags.slug": tagslug, "ispublished": true}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	} else {
-		err = session.DB(DBName).C("posts").Find(bson.M{"tags": tag}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
+		err = session.DB(DBName).C("posts").Find(bson.M{"tags.slug": tagslug}).Sort("-publishedat").Skip(int(pager.Begin)).Limit(int(size)).All(p)
 	}
 	// err = meddler.QueryAll(db, p, fmt.Sprintf(stmtGetPostsByTag, where), tagId, size, pager.Begin)
 	return pager, err

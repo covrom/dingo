@@ -1,10 +1,10 @@
 package handler
 
 import (
-	"strconv"
+	"fmt"
 
-	"github.com/dinever/golf"
 	"github.com/covrom/dingo/app/model"
+	"github.com/dinever/golf"
 )
 
 func registerTagHandlers(app *golf.Application, routes map[string]map[string]interface{}) {
@@ -20,18 +20,22 @@ func registerTagHandlers(app *golf.Application, routes map[string]map[string]int
 
 // APITagHandler retrieves the tag with the given id.
 func APITagHandler(ctx *golf.Context) {
-	id, err := strconv.Atoi(ctx.Param("tag_id"))
-	if err != nil {
-		handleErr(ctx, 500, err)
-		return
-	}
-	tag := &model.Tag{Id: int64(id)}
-	err = tag.GetTag()
-	if err != nil {
-		handleErr(ctx, 404, err)
-		return
-	}
-	ctx.JSONIndent(tag, "", "  ")
+	// FIXME: нет такого id теперь
+
+	// id := ctx.Param("tag_id")
+	// if err != nil {
+	// 	handleErr(ctx, 500, err)
+	// 	return
+	// }
+
+	// tag := &model.Tag{Id: bson.ObjectIdHex(id)}
+	// err = tag.GetTag()
+	// if err != nil {
+	// 		handleErr(ctx, 404, err)
+	handleErr(ctx, 404, fmt.Errorf("tag_id not supported with mongodb"))
+	return
+	// }
+	// ctx.JSONIndent(tag, "", "  ")
 }
 
 // APITagsHandler retrieves all the tags.

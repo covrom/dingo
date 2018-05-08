@@ -25,9 +25,9 @@ type Setting struct {
 	Value     string
 	Type      string // general, content, navigation, custom
 	CreatedAt *time.Time
-	CreatedBy int64
+	CreatedBy string
 	UpdatedAt *time.Time
-	UpdatedBy int64
+	UpdatedBy string
 }
 
 // A Navigator represents a link in the site navigation menu.

@@ -2,10 +2,11 @@ package handler
 
 import (
 	"net/http"
-	"strconv"
 
-	"github.com/dinever/golf"
+	"github.com/globalsign/mgo/bson"
+
 	"github.com/covrom/dingo/app/model"
+	"github.com/dinever/golf"
 )
 
 func AuthMiddleware(next golf.HandlerFunc) golf.HandlerFunc {
@@ -32,8 +33,8 @@ func AuthMiddleware(next golf.HandlerFunc) golf.HandlerFunc {
 			ctx.Redirect("/login/")
 			return
 		}
-		uid, _ := strconv.Atoi(tokenUser.Value)
-		user := &model.User{Id: int64(uid)}
+		uid := tokenUser.Value
+		user := &model.User{Id: bson.ObjectIdHex(uid)}
 		err = user.GetUserById()
 		if err != nil {
 			panic(err)
