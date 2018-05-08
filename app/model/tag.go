@@ -37,8 +37,20 @@ func (t Tags) Get(i int) Tag {
 }
 
 // GetAll returns a slice of every Tag.
-func (t Tags) GetAll() []Tag {
+func (t Tags) GetAll() Tags {
 	return t
+}
+
+func (t Tags) GetDistinctBySlug() (res Tags) {
+	m := make(map[string]bool)
+	for _, tg := range t {
+		if m[tg.Slug] == true {
+			continue
+		}
+		m[tg.Slug] = true
+		res = append(res, tg)
+	}
+	return
 }
 
 func (t Tags) String() (res string) {
@@ -141,13 +153,13 @@ func GenerateTagsFromCommaString(input string) (output Tags) {
 // GetTagsByPostId finds all the tags with the give PostID
 func (tags *Tags) GetTagsByPostId(postId string) error {
 
-	var post Post
-	err := postSession.Clone().DB(DBName).C("posts").FindId(bson.ObjectIdHex(postId)).One(&post)
-	if err != nil {
-		return err
+	ts := &struct{ Tags Tags }{}
+	err := postSession.Clone().DB(DBName).C("posts").FindId(bson.ObjectIdHex(postId)).Select(bson.M{"tags": 1}).One(ts)
+	if err == nil {
+		*tags = ts.Tags.GetDistinctBySlug()
 	}
-	*tags = post.Tags
-	return nil
+
+	return err
 
 	// session := postSession.Clone()
 
@@ -200,7 +212,11 @@ func (tags *Tags) GetTagsByPostId(postId string) error {
 func (tags *Tags) GetAllTags() error {
 	// session := mdb.Copy()
 	// defer session.Close()
-	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{}).Select(bson.M{"tags": 1}).One(tags)
+	ts := &struct{ Tags Tags }{}
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{}).Select(bson.M{"tags": 1}).One(ts)
+	if err == nil {
+		*tags = ts.Tags.GetDistinctBySlug()
+	}
 	// err := meddler.QueryAll(db, tags, stmtGetAllTags)
 	return err
 }

@@ -30,7 +30,7 @@ func TestTag(t *testing.T) {
 			slug := GenerateSlug(name, "tags")
 
 			tag := mockTag(name, slug)
-			
+
 			tags = append(tags, tag)
 
 			err := p.Save(tags...)
@@ -70,6 +70,8 @@ func TestTag(t *testing.T) {
 			Convey("Get all tags", func() {
 				ts := new(Tags)
 				err := ts.GetAllTags()
+
+				// fmt.Printf("tags: %#v\n", ts)
 
 				So(ts, ShouldHaveLength, 3)
 				So(err, ShouldBeNil)

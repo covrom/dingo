@@ -161,7 +161,7 @@ func (p *Post) Save(tags ...Tag) error {
 	p.UpdatedAt = utils.Now()
 	p.UpdatedBy = p.CreatedBy
 
-	p.Tags = tags
+	p.Tags = Tags(tags).GetDistinctBySlug()
 
 	if len(p.Id) == 0 {
 		// Insert post
