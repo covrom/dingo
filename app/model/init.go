@@ -153,12 +153,13 @@ func checkBlogSettings() {
 	SetSettingIfNotExists("description", "Awesome blog created by covrom/dingo.", "blog")
 }
 
-var tmp_post_id_1 = bson.NewObjectId()
+var Tmp_id_1 = bson.NewObjectId()
+var Tmp_id_2 = bson.NewObjectId()
 
 func createWelcomeData() error {
 	var err error
 	p := NewPost()
-	p.Id = tmp_post_id_1
+	p.Id = Tmp_id_1
 	p.Title = "Welcome to Dingo!"
 	p.Slug = "welcome-to-dingo"
 	p.Markdown = samplePostContent

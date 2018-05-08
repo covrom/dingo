@@ -10,7 +10,7 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
-func mockComment(tmp_post_id_1, id2 bson.ObjectId) *Comment {
+func mockComment(Tmp_id_1, id2 bson.ObjectId) *Comment {
 	c := NewComment()
 	c.Author = name
 	c.Email = email
@@ -21,7 +21,7 @@ func mockComment(tmp_post_id_1, id2 bson.ObjectId) *Comment {
 	c.PostId = id2.Hex()
 	//	c.Ip = "127.0.0.1"
 	c.UserAgent = "Mozilla"
-	c.UserId = tmp_post_id_1.Hex()
+	c.UserId = Tmp_id_1.Hex()
 	c.Approved = true
 	return c
 }
@@ -48,11 +48,11 @@ func TestComment(t *testing.T) {
 		Initialize("localhost", true)
 
 		Convey("Test Message", func() {
-			pc := mockComment(tmp_post_id_1, id2)
+			pc := mockComment(Tmp_id_1, id2)
 			err := pc.Save()
 			So(err, ShouldBeNil)
 
-			cc := mockComment(tmp_post_id_1, id2)
+			cc := mockComment(Tmp_id_1, id2)
 			cc.Parent = pc.Id.Hex()
 			cc.Content = "comment test by child"
 			err = cc.Save()

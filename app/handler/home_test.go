@@ -21,8 +21,8 @@ func mockPost() *model.Post {
 	p.Html = utils.Markdown2Html(p.Markdown)
 	p.AllowComment = true
 	p.Category = ""
-	p.CreatedBy = 0
-	p.UpdatedBy = 0
+	p.CreatedBy = ""
+	p.UpdatedBy = ""
 	p.IsPublished = false
 	p.IsPage = false
 	return p

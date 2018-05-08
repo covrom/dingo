@@ -277,6 +277,10 @@ func (p *Post) Update() error {
 // UpdateFromRequest updates an existing Post in the DB based on the data
 // provided in the HTTP request.
 func (p *Post) UpdateFromRequest(r *http.Request) {
+	id := r.FormValue("id")
+	if bson.IsObjectIdHex(id) {
+		p.Id = bson.ObjectIdHex(id)
+	}
 	p.Title = r.FormValue("title")
 	p.Image = r.FormValue("image")
 	p.Slug = r.FormValue("slug")

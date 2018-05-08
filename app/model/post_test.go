@@ -11,10 +11,10 @@ import (
 
 func mockPost() *Post {
 	p := NewPost()
-	// p.Id = tmp_post_id_1
+	// p.Id = Tmp_id_1
 	p.Title = "Welcome to Dingo!"
 	p.Slug = "welcome-to-dingo"
-	p.Markdown = "[test] "+samplePostContent
+	p.Markdown = "[test] " + samplePostContent
 	p.Html = utils.Markdown2Html(p.Markdown)
 	p.IsPage = false
 	p.AllowComment = true
@@ -113,8 +113,8 @@ func TestPost(t *testing.T) {
 			})
 
 			Convey("Delete post by ID", func() {
-				DeletePostById(tmp_post_id_1.Hex())
-				p := &Post{Id: tmp_post_id_1}
+				DeletePostById(Tmp_id_1.Hex())
+				p := &Post{Id: Tmp_id_1}
 				err := p.GetPostById()
 
 				So(err, ShouldNotBeNil)
@@ -183,7 +183,7 @@ func TestPost(t *testing.T) {
 
 			Convey("Get the welcome post", func() {
 				post := new(Post)
-				post.Id = tmp_post_id_1
+				post.Id = Tmp_id_1
 				err := post.GetPostById()
 
 				So(err, ShouldBeNil)

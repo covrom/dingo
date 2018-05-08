@@ -71,7 +71,9 @@ func PostSaveHandler(ctx *golf.Context) {
 	p := model.NewPost()
 	id := ctx.Param("id")
 	// idInt, _ := strconv.Atoi(id)
-	p.Id = bson.ObjectIdHex(id)
+	if bson.IsObjectIdHex(id) {
+		p.Id = bson.ObjectIdHex(id)
+	}
 	p.UpdateFromRequest(ctx.Request)
 	p.CreatedBy = u.Id.Hex()
 	p.UpdatedBy = u.Id.Hex()

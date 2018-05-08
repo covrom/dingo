@@ -25,7 +25,7 @@ func TestMessage(t *testing.T) {
 			p := mockPost()
 			_ = p.Save()
 
-			c := mockComment(tmp_post_id_1, id2)
+			c := mockComment(Tmp_id_1, id2)
 			c.PostId = p.Id.Hex()
 			_ = c.Save()
 
