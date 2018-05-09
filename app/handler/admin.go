@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/covrom/dingo/app/model"
@@ -102,6 +103,14 @@ func ContentSaveHandler(ctx *golf.Context) {
 	id := ctx.Param("id")
 	p := new(model.Post)
 	// idInt, _ := strconv.Atoi(id)
+	if !bson.IsObjectIdHex(id) {
+		ctx.SendStatus(400)
+		ctx.JSON(map[string]interface{}{
+			"status": "error",
+			"msg":    fmt.Errorf("Incorrect post id"),
+		})
+		return
+	}
 	p.Id = bson.ObjectIdHex(id)
 	p.GetPostById()
 	p.UpdateFromRequest(ctx.Request)

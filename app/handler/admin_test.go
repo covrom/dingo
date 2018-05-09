@@ -17,7 +17,9 @@ import (
 )
 
 func authenticatedContext(form url.Values, method, path string) *golf.Context {
-	_ = model.NewUser(email, name).Create(password)
+	u := model.NewUser(email, name)
+	u.Id = model.Tmp_id_1
+	u.Create(password)
 	ctx := mockLogInPostContext()
 	ctx.App.ServeHTTP(ctx.Response, ctx.Request)
 	rec := ctx.Response.(*httptest.ResponseRecorder)
@@ -243,6 +245,7 @@ func TestPostHandler(t *testing.T) {
 			form.Add("comment", "on")
 			form.Add("category", "Dingo")
 			form.Add("status", "on")
+			form.Add("id", model.Tmp_id_1.Hex())
 			ctx := authenticatedContext(form, "POST", "/admin/editor/page/")
 			app := ctx.App
 			app.ServeHTTP(ctx.Response, ctx.Request)
@@ -264,7 +267,7 @@ func TestPostHandler(t *testing.T) {
 				form.Add("comment", "on")
 				form.Add("category", "Dingo")
 				form.Add("status", "on")
-				form.Add("id",  model.Tmp_id_1.Hex())
+				form.Add("id", model.Tmp_id_1.Hex())
 				ctx := authenticatedContext(form, "POST", fmt.Sprintf("/admin/editor/%s/", model.Tmp_id_1.Hex()))
 				app := ctx.App
 				app.ServeHTTP(ctx.Response, ctx.Request)
@@ -394,9 +397,9 @@ func TestPostHandler(t *testing.T) {
 					})
 
 					Convey("Should have correct author", func() {
-						So(post.CreatedBy, ShouldEqual, 1)
-						So(post.UpdatedBy, ShouldEqual, 1)
-						So(post.PublishedBy, ShouldEqual, 1)
+						So(post.CreatedBy, ShouldEqual, model.Tmp_id_1.Hex())
+						So(post.UpdatedBy, ShouldEqual, model.Tmp_id_1.Hex())
+						So(post.PublishedBy, ShouldEqual, model.Tmp_id_1.Hex())
 					})
 
 					Convey("Unused tags should be removed", func() {

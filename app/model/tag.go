@@ -204,9 +204,12 @@ func (tag *Tag) GetTagBySlug() error {
 	// session := mdb.Copy()
 	// defer session.Close()
 	ts := &struct{ Tags Tags }{}
-	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"tags.slug": tag.Slug}).Limit(1).Select(bson.M{"tags": 1}).One(ts)
-	if len(ts.Tags) > 0 {
-		*tag = ts.Tags[0]
+	err := postSession.Clone().DB(DBName).C("posts").Find(bson.M{"tags.slug": tag.Slug}).Select(bson.M{"tags": 1}).Limit(1).One(ts)
+	for _, tst := range ts.Tags {
+		if tst.Slug == tag.Slug {
+			*tag = tst
+			break
+		}
 	}
 	// err := meddler.QueryRow(db, tag, stmtGetTagBySlug, tag.Slug)
 	return err
