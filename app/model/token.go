@@ -10,9 +10,6 @@ import (
 	"github.com/dinever/golf"
 )
 
-// const stmtSave = `INSERT OR REPLACE INTO tokens (id,value, user_id, created_at, expired_at) VALUES (?,?, ?, ?, ?)`
-// const stmtGetTokenByValue = `SELECT * FROM tokens WHERE value = ?`
-
 // A Token is used to associate a user with a session.
 type Token struct {
 	Id        bson.ObjectId `bson:"_id"`
@@ -37,36 +34,17 @@ func NewToken(u *User, ctx *golf.Context, expire int64) *Token {
 // Save saves a token in the DB.
 func (t *Token) Save() error {
 
-	// session := mdb.Copy()
-	// defer session.Close()
-
 	if len(t.Id) == 0 {
 		t.Id = bson.NewObjectId()
 	}
 	_, err := userSession.Clone().DB(DBName).C("tokens").UpsertId(t.Id, t)
 
-	// // NOTE: since medder.Save doesn't support UNIQUE field, it is different from INSERT OR REPLACE...
-	// // err := meddler.Save(db, "tokens", t) doens't work...
-	// writeDB, err := db.Begin()
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	// _, err = writeDB.Exec(stmtSave, t.Id, t.Value, t.UserId, t.CreatedAt, t.ExpiredAt)
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	return err //writeDB.Commit()
+	return err
 }
 
 // GetTokenByValue gets a token from the DB based on it's value.
 func (t *Token) GetTokenByValue() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	err := userSession.Clone().DB(DBName).C("tokens").Find(bson.M{"value": t.Value}).One(t)
-
-	// err := meddler.QueryRow(db, t, stmtGetTokenByValue, t.Value)
 	return err
 }
 

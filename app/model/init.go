@@ -133,10 +133,7 @@ func initConnection(dbPath string) error {
 }
 
 func ensureIndexes() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 
-	// если понадобятся индексы, их нужно инициализировать здесь, см. schema.go
 	for _, idx := range shema_indexes {
 		err := mdb.DB(DBName).C(idx.name).EnsureIndex(idx.idx)
 		if err != nil {

@@ -8,14 +8,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// const stmtGetUserById = `SELECT * FROM users WHERE id = ?`
-// const stmtGetUserBySlug = `SELECT * FROM users WHERE slug = ?`
-// const stmtGetUserByName = `SELECT * FROM users WHERE name = ?`
-// const stmtGetUserByEmail = `SELECT * FROM users WHERE email = ?`
-// const stmtInsertRoleUser = `INSERT INTO roles_users (id, role_id, user_id) VALUES (?, ?, ?)`
-// const stmtGetUsersCountByEmail = `SELECT count(*) FROM users where email = ?`
-// const stmtGetNumberOfUsers = `SELECT COUNT(*) FROM users`
-
 // A User is a user on the site.
 type User struct {
 	Id             bson.ObjectId `bson:"_id"`
@@ -68,20 +60,12 @@ func (u *User) Create(password string) error {
 // Save saves a user to the DB.
 func (u *User) Save() error {
 	err := u.Insert()
-	//	err = InsertRoleUser(u.Role, userId)
-	//	if err != nil {
-	//		return err
-	//	}
 	return err
 }
 
 // Update updates an existing user in the DB.
 func (u *User) Update() error {
 	u.UpdatedAt = utils.Now()
-	// TODO:
-	//u.UpdatedBy = ...
-	// session := mdb.Copy()
-	// defer session.Close()
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
@@ -90,7 +74,6 @@ func (u *User) Update() error {
 	}
 	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
 
-	// err := meddler.Update(db, "users", u)
 	return err
 }
 
@@ -137,48 +120,31 @@ func (u *User) Avatar() string {
 
 // GetUserById finds the user by ID in the DB.
 func (u *User) GetUserById() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	err := userSession.Clone().DB(DBName).C("users").FindId(u.Id).One(u)
 
-	// err := meddler.QueryRow(db, u, stmtGetUserById, u.Id)
 	return err
 }
 
 // GetUserBySlug finds the user by their slug in the DB.
 func (u *User) GetUserBySlug() error {
-	// session := mdb.Copy()
-	// defer session.Close()
-
 	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"slug": u.Slug}).One(u)
-	// err := meddler.QueryRow(db, u, stmtGetUserBySlug, u.Slug)
 	return err
 }
 
 // GetUserByName finds the user by name in the DB.
 func (u *User) GetUserByName() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"name": u.Name}).One(u)
-
-	// err := meddler.QueryRow(db, u, stmtGetUserByName, u.Name)
 	return err
 }
 
 // GetUserByEmail finds the user by email in the DB.
 func (u *User) GetUserByEmail() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"email": u.Email}).One(u)
-
-	// err := meddler.QueryRow(db, u, stmtGetUserByEmail, u.Email)
 	return err
 }
 
 // Insert inserts the user into the DB.
 func (u *User) Insert() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	if len(u.Id) == 0 {
 		u.Id = bson.NewObjectId()
 	}
@@ -186,8 +152,6 @@ func (u *User) Insert() error {
 		u.Slug = GenerateSlug(u.Id.Hex()+u.Email, "users")
 	}
 	_, err := userSession.Clone().DB(DBName).C("users").UpsertId(u.Id, u)
-
-	// err := meddler.Insert(db, "users", u)
 	return err
 }
 
@@ -198,32 +162,13 @@ type RolesUsers struct {
 
 // InsertRoleUser assigns a role to the given user based on the given Role ID.
 func InsertRoleUser(role_id string, user_id string) error {
-	// writeDB, err := db.Begin()
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	// session := mdb.Copy()
-	// defer session.Close()
 	err := userSession.Clone().DB(DBName).C("rolesusers").Insert(&RolesUsers{RoleId: role_id, UserId: user_id})
-
-	// _, err = writeDB.Exec(stmtInsertRoleUser, nil, role_id, user_id)
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
 	return err //writeDB.Commit()
 }
 
 // UserEmailExist checks to see if the given User's email exists.
 func (u User) UserEmailExist() bool {
-	// session := mdb.Copy()
-	// defer session.Close()
 	count, err := userSession.Clone().DB(DBName).C("users").Find(bson.M{"email": u.Email}).Count()
-
-	// var count int64
-	// row := db.QueryRow(stmtGetUsersCountByEmail, u.Email)
-	// err := row.Scan(&count)
 	if count > 0 || err != nil {
 		return true
 	}
@@ -232,12 +177,6 @@ func (u User) UserEmailExist() bool {
 
 // GetNumberOfUsers returns the total number of users.
 func GetNumberOfUsers() (int64, error) {
-	// session := mdb.Copy()
-	// defer session.Close()
 	count, err := userSession.Clone().DB(DBName).C("users").Find(bson.M{}).Count()
-
-	// var count int64
-	// row := db.QueryRow(stmtGetNumberOfUsers)
-	// err := row.Scan(&count)
 	return int64(count), err
 }

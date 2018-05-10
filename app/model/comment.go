@@ -10,7 +10,6 @@ import (
 	"github.com/covrom/dingo/app/utils"
 	"github.com/globalsign/mgo"
 	"github.com/globalsign/mgo/bson"
-	// "github.com/russross/meddler"
 )
 
 // Comments are a slice of "Comment"s
@@ -69,8 +68,6 @@ func (c *Comment) Save() error {
 	_, err := comSession.Clone().DB(DBName).C("comments").UpsertId(c.Id, c)
 	return err
 
-	// err := meddler.Save(db, "comments", c)
-	// return err
 }
 
 // ToJson returns a comment as a map, in order to be encoded as JSON.
@@ -111,8 +108,6 @@ func (c *Comment) ParentContent() string {
 // GetNumberOfComments returns the total number of comments in the DB.
 func GetNumberOfComments() (int64, error) {
 
-	// session := mdb.Copy()
-	// defer session.Close()
 	count, err := comSession.Clone().DB(DBName).C("comments").Count()
 
 	if err != nil {
@@ -132,39 +127,29 @@ func (c *Comments) GetCommentList(page, size int64, onlyApproved bool) (*utils.P
 		return pager, fmt.Errorf("Page not found")
 	}
 
-	// session := mdb.Copy()
-	// defer session.Close()
-
 	if onlyApproved {
 		err = comSession.Clone().DB(DBName).C("comments").Find(bson.M{"approved": true}).Sort("-createdat").Skip(int(pager.Begin)).Limit(int(size)).All(c)
 	} else {
 		err = comSession.Clone().DB(DBName).C("comments").Find(bson.M{}).Sort("-createdat").Skip(int(pager.Begin)).Limit(int(size)).All(c)
 	}
 
-	// err = meddler.QueryAll(db, c, fmt.Sprintf(stmtGetCommentList, where), size, pager.Begin)
 	return pager, err
 }
 
 // GetCommentById gets a comment by its ID, and populates that comment struct
 // with the contents for that comment from the DB.
 func (c *Comment) GetCommentById() error {
-	// session := mdb.Copy()
-	// defer session.Close()
 
 	err := comSession.Clone().DB(DBName).C("comments").FindId(c.Id).One(c)
 
-	// err := meddler.QueryRow(db, c, stmtGetCommentById, c.Id)
 	return err
 }
 
 func (c *Comment) getChildComments() (*Comments, error) {
-	// session := mdb.Copy()
-	// defer session.Close()
 
 	comments := new(Comments)
 	err := comSession.Clone().DB(DBName).C("comments").Find(bson.M{"parent": c.Id.Hex(), "approved": true}).All(comments)
 
-	// err := meddler.QueryAll(db, comments, stmtGetCommentsByParentId, c.Id)
 	return comments, err
 }
 
@@ -185,12 +170,9 @@ func (c *Comment) Post() *Post {
 
 // GetCommentsByPostId gets all the comments for the given post ID.
 func (comments *Comments) GetCommentsByPostId(id string) error {
-	// session := mdb.Copy()
-	// defer session.Close()
 
 	err := comSession.Clone().DB(DBName).C("comments").Find(bson.M{"postid": id, "parent": "", "approved": true}).All(comments)
 
-	// err := meddler.QueryAll(db, comments, stmtGetParentCommentsByPostId, id)
 	for _, c := range *comments {
 		buildCommentTree(c, c, 1)
 	}
@@ -217,8 +199,6 @@ func buildCommentTree(p *Comment, c *Comment, level int) {
 
 // DeleteComment deletes the comment with the given ID from the DB.
 func DeleteComment(id string) error {
-	// session := mdb.Copy()
-	// defer session.Close()
 	session := comSession.Clone()
 
 	childs := new(Comments)
@@ -236,17 +216,7 @@ func DeleteComment(id string) error {
 		err = nil
 	}
 
-	// writeDB, err := db.Begin()
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	// _, err = writeDB.Exec(stmtDeleteCommentById, id)
-	// if err != nil {
-	// 	writeDB.Rollback()
-	// 	return err
-	// }
-	return err //writeDB.Commit()
+	return err
 }
 
 // ValidateComment validates a comment to ensure that all required data exists
@@ -264,10 +234,3 @@ func (c *Comment) ValidateComment() string {
 	return ""
 }
 
-// const stmtGetAllCommentCount = `SELECT count(*) FROM comments`
-// const stmtDeleteCommentById = `DELETE FROM comments WHERE id = ?`
-// const stmtGetCommentList = `SELECT * FROM comments %s ORDER BY created_at DESC LIMIT ? OFFSET ?`
-// const stmtGetCommentById = `SELECT * FROM comments WHERE id = ?`
-// const stmtGetCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
-// const stmtGetParentCommentsByPostId = `SELECT * FROM comments WHERE post_id = ? AND approved = 1 AND parent = 0`
-// const stmtGetCommentsByParentId = `SELECT * FROM comments WHERE parent = ? AND approved = 1`
