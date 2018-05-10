@@ -1,6 +1,7 @@
-**This project is under heavy development and is not ready for use. Now i patch it to use MongoDB driver.**
+**This project is under heavy development and is not ready for use in production**
 
 Dingo is a full-featured blog engine written in Go.
+In this fork, i switch a database driver from meddler/SQLite to MongoDB.
 
 ## Main Features
 
